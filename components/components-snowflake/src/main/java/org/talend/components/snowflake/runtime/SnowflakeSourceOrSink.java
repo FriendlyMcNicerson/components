@@ -29,17 +29,16 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.avro.Schema;
-import org.apache.avro.Schema.Field;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.api.component.runtime.SourceOrSink;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.properties.ComponentProperties;
+import org.talend.components.common.avro.JDBCTableMetadata;
 import org.talend.components.snowflake.SnowflakeConnectionProperties;
 import org.talend.components.snowflake.SnowflakeProvideConnectionProperties;
 import org.talend.daikon.NamedThing;
 import org.talend.daikon.SimpleNamedThing;
-import org.talend.daikon.avro.SchemaConstants;
 import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.ValidationResult.Result;
 
@@ -251,29 +250,13 @@ public class SnowflakeSourceOrSink implements SourceOrSink {
 
         SnowflakeConnectionProperties connProps = getEffectiveConnectionProperties(container);
         try {
-            DatabaseMetaData metaData = connection.getMetaData();
-
-            ResultSet resultSet = metaData.getColumns(getCatalog(connProps), getDbSchema(connProps), tableName, null);
-            tableSchema = SnowflakeAvroRegistry.get().inferSchema(resultSet);
+            JDBCTableMetadata tableMetadata = new JDBCTableMetadata();
+            tableMetadata.setDatabaseMetaData(connection.getMetaData()).setCatalog(getCatalog(connProps))
+                    .setDbSchema(getDbSchema(connProps)).setTablename(tableName);
+            tableSchema = SnowflakeAvroRegistry.get().inferSchema(tableMetadata);
             // FIXME - I18N for this message
             if (tableSchema == null)
                 throw new IOException("Table: " + tableName + " not found");
-
-            // Update the schema with Primary Key details
-            // FIXME - move this into the inferSchema stuff
-            ResultSet keysIter = metaData.getPrimaryKeys(getCatalog(connProps), getDbSchema(connProps), tableName);
-
-            List<String> pkColumns = new ArrayList<>(); // List of Primary Key columns for this table
-            while (keysIter.next()) {
-                pkColumns.add(keysIter.getString("COLUMN_NAME"));
-            }
-
-            for (Field f : tableSchema.getFields()) {
-                if (pkColumns.contains(f.name())) {
-                    f.schema().addProp(SchemaConstants.TALEND_COLUMN_IS_KEY, "true");
-                }
-            }
-
         } catch (SQLException se) {
             throw new IOException(se);
         }

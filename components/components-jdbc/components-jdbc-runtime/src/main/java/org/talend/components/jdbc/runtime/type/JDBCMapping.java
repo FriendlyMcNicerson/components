@@ -60,6 +60,9 @@ public class JDBCMapping {
                 statement.setNull(index, java.sql.Types.CHAR);
             } else if (AvroUtils.isSameType(basicSchema, AvroUtils._byte())) {
                 statement.setNull(index, java.sql.Types.SMALLINT);
+            } else if (AvroUtils.isSameType(basicSchema, AvroUtils._bytes())) {
+                // TODO need to consider it
+                // statement.setNull(index, java.sql.Types.BLOB);
             } else {
                 statement.setNull(index, java.sql.Types.JAVA_OBJECT);
             }
@@ -91,6 +94,9 @@ public class JDBCMapping {
             statement.setInt(index, (Character) value);
         } else if (AvroUtils.isSameType(basicSchema, AvroUtils._byte())) {
             statement.setByte(index, (Byte) value);
+        } else if (AvroUtils.isSameType(basicSchema, AvroUtils._bytes())) {
+            // TODO need to consider it, bytes only map to blob?
+            // statement.setBlob
         } else {
             statement.setObject(index, value);
         }

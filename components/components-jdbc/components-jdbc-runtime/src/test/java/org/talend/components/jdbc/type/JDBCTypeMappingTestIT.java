@@ -12,7 +12,7 @@
 // ============================================================================
 package org.talend.components.jdbc.type;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -30,6 +30,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.talend.components.api.component.ComponentDefinition;
 import org.talend.components.api.component.runtime.Reader;
+import org.talend.components.jdbc.common.ComplexDBTableWithAllDataType;
 import org.talend.components.jdbc.common.DBTestUtils;
 import org.talend.components.jdbc.runtime.JDBCSource;
 import org.talend.components.jdbc.runtime.JdbcRuntimeUtils;
@@ -52,7 +53,9 @@ public class JDBCTypeMappingTestIT {
     public static void beforeClass() throws Exception {
         allSetting = DBTestUtils.createAllSetting();
 
-        DBTestUtils.createTableForEveryType(allSetting);
+        try (Connection conn = JdbcRuntimeUtils.createConnection(allSetting)) {
+            ComplexDBTableWithAllDataType.createTestTable(conn);
+        }
     }
 
     @AfterClass
@@ -66,7 +69,10 @@ public class JDBCTypeMappingTestIT {
 
     @Before
     public void before() throws Exception {
-        DBTestUtils.truncateTableAndLoadDataForEveryType(allSetting);
+        try (Connection conn = JdbcRuntimeUtils.createConnection(allSetting)) {
+            DBTestUtils.truncateTable(conn);
+            ComplexDBTableWithAllDataType.loadTestData(conn);
+        }
     }
 
     @Test
@@ -74,7 +80,7 @@ public class JDBCTypeMappingTestIT {
         TJDBCInputDefinition definition = new TJDBCInputDefinition();
         TJDBCInputProperties properties = DBTestUtils.createCommonJDBCInputProperties(allSetting, definition);
 
-        properties.main.schema.setValue(DBTestUtils.createTestSchema3(true));
+        properties.main.schema.setValue(ComplexDBTableWithAllDataType.createTestSchema(true));
         properties.tableSelection.tablename.setValue(DBTestUtils.getTablename());
         properties.sql.setValue(DBTestUtils.getSQL());
 
@@ -269,7 +275,7 @@ public class JDBCTypeMappingTestIT {
         TJDBCInputDefinition definition = new TJDBCInputDefinition();
         TJDBCInputProperties properties = DBTestUtils.createCommonJDBCInputProperties(allSetting, definition);
 
-        properties.main.schema.setValue(DBTestUtils.createTestSchema3(nullableForAnyColumn));
+        properties.main.schema.setValue(ComplexDBTableWithAllDataType.createTestSchema(nullableForAnyColumn));
         properties.tableSelection.tablename.setValue(DBTestUtils.getTablename());
         properties.sql.setValue(DBTestUtils.getSQL());
 
@@ -299,6 +305,8 @@ public class JDBCTypeMappingTestIT {
             assertEquals(String.class, record.get(12).getClass());
             assertEquals(String.class, record.get(13).getClass());
             assertEquals(String.class, record.get(14).getClass());
+            assertEquals(String.class, record.get(15).getClass());
+            assertEquals(String.class, record.get(16).getClass());
 
             reader.close();
         } finally {
@@ -323,7 +331,7 @@ public class JDBCTypeMappingTestIT {
             TJDBCInputDefinition definition = new TJDBCInputDefinition();
             TJDBCInputProperties properties = DBTestUtils.createCommonJDBCInputProperties(allSetting, definition);
 
-            properties.main.schema.setValue(DBTestUtils.createTestSchema3(nullableForAnyColumn));
+            properties.main.schema.setValue(ComplexDBTableWithAllDataType.createTestSchema(nullableForAnyColumn));
             properties.tableSelection.tablename.setValue(DBTestUtils.getTablename());
             properties.sql.setValue(DBTestUtils.getSQL());
 
@@ -347,6 +355,8 @@ public class JDBCTypeMappingTestIT {
             String c13 = (String) row.get(12);
             String c14 = (String) row.get(13);
             String c15 = (String) row.get(14);
+            String c16 = (String) row.get(15);
+            String c17 = (String) row.get(16);
 
             assertEquals("1", c1);
             assertEquals("2", c2);
@@ -363,6 +373,10 @@ public class JDBCTypeMappingTestIT {
             Assert.assertNotNull(c13);
             assertEquals("wangwei", c14);
             assertEquals("a long one : 1", c15);
+
+            // test lob part
+            assertEquals("00010203040506070809", c16);
+            assertEquals("a long content", c17);
 
             reader.advance();
 
@@ -452,6 +466,45 @@ public class JDBCTypeMappingTestIT {
             c13 = (String) row.get(12);
             c14 = (String) row.get(13);
             c15 = (String) row.get(14);
+            c16 = (String) row.get(15);
+            c17 = (String) row.get(16);
+
+            assertEquals("2147483647", c1);
+            assertEquals("32767", c2);
+            assertEquals("9223372036854775807", c3);
+            Assert.assertNull(c4);
+            Assert.assertNull(c5);
+            Assert.assertNull(c6);
+            Assert.assertNull(c7);
+            Assert.assertNull(c8);
+            Assert.assertNull(c9);
+            Assert.assertNull(c10);
+            assertEquals("2016-12-28", c11);
+            assertEquals("14:30:33", c12);
+            assertEquals("2016-12-28 14:31:56.12345", c13);
+            Assert.assertNull(c14);
+            Assert.assertNull(c15);
+            Assert.assertNull(c16);
+            Assert.assertNull(c17);
+
+            reader.advance();
+
+            row = (IndexedRecord) reader.getCurrent();
+            c1 = (String) row.get(0);
+            c2 = (String) row.get(1);
+            c3 = (String) row.get(2);
+            c4 = (String) row.get(3);
+            c5 = (String) row.get(4);
+            c6 = (String) row.get(5);
+            c7 = (String) row.get(6);
+            c8 = (String) row.get(7);
+            c9 = (String) row.get(8);
+            c10 = (String) row.get(9);
+            c11 = (String) row.get(10);
+            c12 = (String) row.get(11);
+            c13 = (String) row.get(12);
+            c14 = (String) row.get(13);
+            c15 = (String) row.get(14);
 
             assertEquals("1", c1);
             Assert.assertNull(c2);
@@ -509,7 +562,7 @@ public class JDBCTypeMappingTestIT {
             reader.close();
 
             Map<String, Object> returnMap = reader.getReturnValues();
-            Assert.assertEquals(5, returnMap.get(ComponentDefinition.RETURN_TOTAL_RECORD_COUNT));
+            Assert.assertEquals(6, returnMap.get(ComponentDefinition.RETURN_TOTAL_RECORD_COUNT));
         } catch (Exception e) {
             Assert.fail(e.getMessage());
         } finally {
@@ -538,7 +591,7 @@ public class JDBCTypeMappingTestIT {
         TJDBCOutputDefinition definition = new TJDBCOutputDefinition();
         TJDBCOutputProperties properties = DBTestUtils.createCommonJDBCOutputProperties(allSetting, definition);
 
-        Schema schema = DBTestUtils.createTestSchema3(nullableForAnyColumn);
+        Schema schema = ComplexDBTableWithAllDataType.createTestSchema(nullableForAnyColumn, false);
         properties.main.schema.setValue(schema);
         properties.updateOutputSchemas();
 
@@ -551,7 +604,7 @@ public class JDBCTypeMappingTestIT {
         try {
             writer.open("wid");
 
-            List<IndexedRecord> inputRecords = DBTestUtils.prepareIndexRecords(nullableForAnyColumn);
+            List<IndexedRecord> inputRecords = ComplexDBTableWithAllDataType.prepareIndexRecords(nullableForAnyColumn);
             for (IndexedRecord inputRecord : inputRecords) {
                 writer.write(inputRecord);
 
@@ -569,15 +622,15 @@ public class JDBCTypeMappingTestIT {
             TJDBCInputDefinition definition1 = new TJDBCInputDefinition();
             TJDBCInputProperties properties1 = DBTestUtils.createCommonJDBCInputProperties(allSetting, definition1);
 
-            properties1.main.schema.setValue(DBTestUtils.createTestSchema3(nullableForAnyColumn));
+            properties1.main.schema.setValue(ComplexDBTableWithAllDataType.createTestSchema(nullableForAnyColumn, false));
             properties1.tableSelection.tablename.setValue(DBTestUtils.getTablename());
-            properties1.sql.setValue(DBTestUtils.getSQL());
+            properties1.sql.setValue(ComplexDBTableWithAllDataType.getSQL());
 
             reader = DBTestUtils.createCommonJDBCInputReader(properties1);
 
             reader.start();
             int i = 0;
-            while ((i++) < 5) {// skip the 5 rows at the head
+            while ((i++) < 6) {// skip the 6 rows at the head
                 reader.advance();
             }
 
@@ -759,7 +812,7 @@ public class JDBCTypeMappingTestIT {
             reader.close();
 
             Map<String, Object> returnMap = reader.getReturnValues();
-            Assert.assertEquals(10, returnMap.get(ComponentDefinition.RETURN_TOTAL_RECORD_COUNT));
+            Assert.assertEquals(11, returnMap.get(ComponentDefinition.RETURN_TOTAL_RECORD_COUNT));
         } catch (Exception e) {
             Assert.fail(e.getMessage());
         } finally {

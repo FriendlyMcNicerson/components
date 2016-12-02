@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.dataprep;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
@@ -22,9 +23,11 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.talend.components.jdbc.common.DBTestUtils;
+import org.talend.components.jdbc.common.SimpleDBTable;
 import org.talend.components.jdbc.dataset.JDBCDatasetProperties;
 import org.talend.components.jdbc.datastore.JDBCDatastoreDefinition;
 import org.talend.components.jdbc.datastore.JDBCDatastoreProperties;
+import org.talend.components.jdbc.runtime.JdbcRuntimeUtils;
 import org.talend.components.jdbc.runtime.dataprep.JDBCDatasetRuntime;
 import org.talend.components.jdbc.runtime.setting.AllSetting;
 import org.talend.daikon.java8.Consumer;
@@ -47,15 +50,17 @@ public class JDBCDatasetOracleTestIT {
         allSetting.setUsername("");
         allSetting.setPassword("");
 
-        DBTestUtils.createTable(allSetting);
-        DBTestUtils.truncateTableAndLoadData(allSetting);
+        try (Connection conn = JdbcRuntimeUtils.createConnection(allSetting)) {
+            SimpleDBTable.createTestTable(conn);
+            SimpleDBTable.loadTestData(conn);
+        }
     }
 
     @AfterClass
     public static void afterClass() throws Exception {
         DBTestUtils.releaseResource(allSetting);
     }
-
+    
     @Ignore
     @Test
     public void testGetSchema() {

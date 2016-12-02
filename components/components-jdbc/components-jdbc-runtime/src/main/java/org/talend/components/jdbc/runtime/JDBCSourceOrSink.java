@@ -28,12 +28,13 @@ import org.talend.components.api.component.runtime.SourceOrSink;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.properties.ComponentProperties;
-import org.talend.components.jdbc.avro.JDBCAvroRegistryString;
+import org.talend.components.common.avro.JDBCTableMetadata;
 import org.talend.components.common.dataset.DatasetProperties;
 import org.talend.components.common.datastore.DatastoreProperties;
 import org.talend.components.jdbc.ComponentConstants;
 import org.talend.components.jdbc.JdbcComponentErrorsCode;
 import org.talend.components.jdbc.RuntimeSettingProvider;
+import org.talend.components.jdbc.avro.JDBCAvroRegistryString;
 import org.talend.components.jdbc.runtime.setting.AllSetting;
 import org.talend.daikon.NamedThing;
 import org.talend.daikon.SimpleNamedThing;
@@ -119,9 +120,10 @@ public class JDBCSourceOrSink implements SourceOrSink {
 
     @Override
     public Schema getEndpointSchema(RuntimeContainer runtime, String tableName) throws IOException {
-        try (Connection conn = connect(runtime);
-                ResultSet resultset = conn.getMetaData().getColumns(null, null, tableName, null)) {
-            return JDBCAvroRegistryString.get().inferSchema(resultset);
+        try (Connection conn = connect(runtime)) {
+            JDBCTableMetadata tableMetadata = new JDBCTableMetadata();
+            tableMetadata.setDatabaseMetaData(conn.getMetaData()).setTablename(tableName);
+            return JDBCAvroRegistryString.get().inferSchema(tableMetadata);
         } catch (Exception e) {
             throw new ComponentException(e);
         }
