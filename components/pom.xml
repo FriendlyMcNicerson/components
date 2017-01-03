@@ -29,5 +29,6 @@
         <module>components-filedelimited</module>
         <module>components-elasticsearch</module>
         <module>components-filterrow</module>
+        <module>components-pubsub</module>
     </modules>
 </project>
