@@ -31,10 +31,11 @@ import org.talend.daikon.runtime.RuntimeInfo;
 
 /**
  * The ${componentName}Definition acts as an entry point for all of services that 
- * a component provides to integrate with the Studio (at design-time) and other 
+ * a component provides to integrate with the Runtime Platform (at design-time) and other 
  * components (at run-time).
  */
 public class ${componentName}Definition extends AbstractComponentDefinition {
+	
     public static final String COMPONENT_NAME = "${componentName}"; //$NON-NLS-1$
 
     public ${componentName}Definition() {
@@ -65,16 +66,12 @@ public class ${componentName}Definition extends AbstractComponentDefinition {
     public Class<? extends ComponentProperties> getPropertyClass() {
         return ${componentName}Properties.class;
     }
-
     
     @Override
-    public RuntimeInfo getRuntimeInfo(ExecutionEngine engine, ComponentProperties properties, ConnectorTopology componentType) {
+    public RuntimeInfo getRuntimeInfo(ExecutionEngine engine, ComponentProperties properties, ConnectorTopology connectorTopology) {
         assertEngineCompatibility(engine);
-        if (componentType == ConnectorTopology.OUTGOING) {
-            return new SimpleRuntimeInfo(this.getClass().getClassLoader(), DependenciesReader.computeDependenciesFilePath("${groupId}", "${artifactId}"), ${componentName}Source.class.getCanonicalName());
-        } else {
-            return null;
-        }
+		assertConnectorTopologyCompatibility(connectorTopology);
+        return new SimpleRuntimeInfo(this.getClass().getClassLoader(), DependenciesReader.computeDependenciesFilePath("${groupId}", "${artifactId}"), ${componentName}Source.class.getCanonicalName());
     }
 
     @Override
