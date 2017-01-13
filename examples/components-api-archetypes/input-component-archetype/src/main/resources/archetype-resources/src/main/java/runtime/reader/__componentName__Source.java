@@ -40,52 +40,38 @@ import org.talend.daikon.properties.ValidationResult;
  * to scalable big data execution engines on a cluster, or run locally.
  *
  * This example component describes an input source that is guaranteed to be
- * run in a single JVM (whether on a cluster or locally), so:
- *
- * <ul>
- * <li>the simplified logic for reading is found in the {@link ${componentName}Reader},
- *     and</li>
- * </ul>
+ * run in a single JVM (whether on a cluster or locally)
  */
 public class ${componentName}Source implements BoundedSource {
 
     /** Default serial version UID. */
     private static final long serialVersionUID = 1L;
-
-    /** Configuration extracted from the input properties. */
-    private ${componentName}Properties properties;
     
-    private transient Schema schema;
+    private String filePath;
+    
+    private Schema schema;
 
     public ValidationResult initialize(RuntimeContainer container, ComponentProperties properties) {
-        this.properties = (${componentName}Properties) properties;
-        // FIXME - this should be moved to the properties setup
-        schema = new Schema.Parser().parse(this.properties.schema.schema.getStringValue()); 
+		${componentName}Properties componentProperties = (${componentName}Properties) properties;
+        schema = componentProperties.schema.schema.getValue();
+		filePath = componentProperties.filename.getValue();
         return ValidationResult.OK;
     }
 
-    public BoundedReader createReader(RuntimeContainer container) {
-        return new ${componentName}Reader(container, this, this.properties.filename.getStringValue());
-    }
-
-    public ValidationResult validate(RuntimeContainer adaptor) {
-        // Check that the file exists.
-        File f = new File(this.properties.filename.getStringValue());
-        if (!f.exists()) {
+    /**
+     * Validates that component can connect to Data Store
+     * Here, method checks that file exist
+     */
+    public ValidationResult validate(RuntimeContainer container) {
+        File file = new File(filePath);
+		if (file.exists()) {
+			return ValidationResult.OK;
+		} else {
             ValidationResult vr = new ValidationResult();
             vr.setMessage("The file '" + f.getPath() + "' does not exist."); //$NON-NLS-1$//$NON-NLS-2$
             vr.setStatus(ValidationResult.Result.ERROR);
             return vr;
         }
-        // Check that there is exactly one column to contain the output.
-        if (schema.getFields().size() != 1) {
-            ValidationResult vr = new ValidationResult();
-            vr.setMessage("The schema must have exactly one column."); //$NON-NLS-1$
-            vr.setStatus(ValidationResult.Result.ERROR);
-            return vr;
-        }
-        
-        return ValidationResult.OK;
     }
 
     public Schema getEndpointSchema(RuntimeContainer container, String schemaName) throws IOException {
@@ -96,26 +82,29 @@ public class ${componentName}Source implements BoundedSource {
         return null;
     }
 
-    public Schema getSchemaFromProperties(RuntimeContainer adaptor) throws IOException {
-        return schema;
+    public List<? extends BoundedSource> splitIntoBundles(long desiredBundleSizeBytes, RuntimeContainer adaptor) throws Exception {
+       // There can be only one.
+       return Arrays.asList(this);
     }
 
-    public Schema getPossibleSchemaFromProperties(RuntimeContainer adaptor) throws IOException {
-        return schema;
+    public long getEstimatedSizeBytes(RuntimeContainer adaptor) {
+       // This will be ignored since the source will never be split.
+       return 0;
     }
 
-     public List<? extends BoundedSource> splitIntoBundles(long desiredBundleSizeBytes, RuntimeContainer adaptor) throws Exception {
-        // There can be only one.
-        return Arrays.asList(this);
-     }
+    public boolean producesSortedKeys(RuntimeContainer adaptor) {
+       return false;
+    }
+	
+    public BoundedReader createReader(RuntimeContainer container) {
+        return new ${componentName}Reader(container, this, filePath);
+    }
 
-     public long getEstimatedSizeBytes(RuntimeContainer adaptor) {
-        // This will be ignored since the source will never be split.
-        return 0;
-     }
-
-     public boolean producesSortedKeys(RuntimeContainer adaptor) {
-        return false;
-     }
-
+    Schema getDesignSchema() {
+        return this.schema;
+    }
+	
+    String getFilePath() {
+        return this.filePath;
+    }
 }
