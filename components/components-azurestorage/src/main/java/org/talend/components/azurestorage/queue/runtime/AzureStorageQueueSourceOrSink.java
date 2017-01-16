@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2017 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // %InstallDIR%\features\org.talend.rcp.branding.%PRODUCTNAME%\%PRODUCTNAME%license.txt
@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.apache.avro.Schema;
 import org.talend.components.api.component.runtime.SourceOrSink;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
@@ -117,12 +116,6 @@ public class AzureStorageQueueSourceOrSink extends AzureStorageSourceOrSink impl
     public CloudQueue getCloudQueue(RuntimeContainer runtime, String queue)
             throws InvalidKeyException, URISyntaxException, StorageException {
         return getStorageQueueClient(runtime).getQueueReference(queue);
-    }
-
-    @Override
-    public Schema getEndpointSchema(RuntimeContainer container, String schemaName) throws IOException {
-        // TODO Auto-generated method stub
-        return super.getEndpointSchema(container, schemaName);
     }
 
     public static List<NamedThing> getSchemaNames(RuntimeContainer container, TAzureStorageConnectionProperties properties)

@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2017 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // %InstallDIR%\features\org.talend.rcp.branding.%PRODUCTNAME%\%PRODUCTNAME%license.txt
@@ -60,10 +60,4 @@ public class RemoteBlobsTable extends ComponentPropertiesImpl {
         mainForm.addColumn(include);
     }
 
-    @Override
-    public void setupProperties() {
-        super.setupProperties();
-        // TODO see why this leads to problems during job generation
-        // prefix.setTaggedValue(ADD_QUOTES, true);
-    }
 }

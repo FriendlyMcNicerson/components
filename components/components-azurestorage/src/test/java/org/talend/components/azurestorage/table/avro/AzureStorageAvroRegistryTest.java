@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2017 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // %InstallDIR%\features\org.talend.rcp.branding.%PRODUCTNAME%\%PRODUCTNAME%license.txt
@@ -68,7 +68,6 @@ public class AzureStorageAvroRegistryTest extends AzureStorageTableBaseTestIT {
         assertEquals(1000, record.get(s.getField("a_int").pos()));
         assertTrue(record.get(s.getField("a_string").pos()) instanceof String);
 
-        // TODO Test the nameMappings
         Map<String, String> nameMappings = new HashMap<>();
         nameMappings.put("a_bool", "booly");
         AzureStorageTableAdaptorFactory adaptor = new AzureStorageTableAdaptorFactory(nameMappings);

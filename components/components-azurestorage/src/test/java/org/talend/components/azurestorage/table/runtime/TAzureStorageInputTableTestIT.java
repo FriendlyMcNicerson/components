@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2017 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // %InstallDIR%\features\org.talend.rcp.branding.%PRODUCTNAME%\%PRODUCTNAME%license.txt
@@ -148,7 +148,6 @@ public class TAzureStorageInputTableTestIT extends AzureStorageTableBaseTestIT {
         properties.tableName.setValue(ctable);
         // String f = String.format("datetime\'%s:00Z\'", sdf);
         System.out.println("filter is ... " + sdf);
-        // TODO remake the test
         properties.useFilterExpression.setValue(true);
         List<String> cols = Arrays.asList("PartitionKey", "Timestamp");
         List<String> ops = Arrays.asList(pk_test1, sdf);
