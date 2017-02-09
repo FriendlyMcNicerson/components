@@ -12,11 +12,7 @@
 // ============================================================================
 package org.talend.components.azurestorage;
 
-import java.util.EnumSet;
-import java.util.Set;
-
 import org.talend.components.api.component.AbstractComponentDefinition;
-import org.talend.components.api.component.ConnectorTopology;
 import org.talend.components.api.component.runtime.DependenciesReader;
 import org.talend.components.api.component.runtime.SimpleRuntimeInfo;
 import org.talend.components.api.component.runtime.SourceOrSink;
@@ -54,18 +50,18 @@ public abstract class AzureStorageDefinition extends AbstractComponentDefinition
      */
     public AzureStorageDefinition(String componentName) {
         super(componentName, true);
-        setupI18N(new Property<?>[] { RETURN_ERROR_MESSAGE_PROP, RETURN_ACCOUNT_KEY_PROP, RETURN_ACCOUNT_NAME_PROP });
+        setupI18N(new Property<?>[]{RETURN_ERROR_MESSAGE_PROP, RETURN_ACCOUNT_KEY_PROP, RETURN_ACCOUNT_NAME_PROP});
     }
 
     @Override
     public String[] getFamilies() {
-        return new String[] { "Cloud/Azure Storage" }; //$NON-NLS-1$
+        return new String[]{"Cloud/Azure Storage"}; //$NON-NLS-1$
     }
 
     @SuppressWarnings("rawtypes")
     @Override
     public Property[] getReturnProperties() {
-        return new Property[] { RETURN_ERROR_MESSAGE_PROP, RETURN_ACCOUNT_NAME_PROP, RETURN_ACCOUNT_KEY_PROP };
+        return new Property[]{RETURN_ERROR_MESSAGE_PROP, RETURN_ACCOUNT_NAME_PROP, RETURN_ACCOUNT_KEY_PROP};
     }
 
     @Override
@@ -76,7 +72,7 @@ public abstract class AzureStorageDefinition extends AbstractComponentDefinition
     @SuppressWarnings("unchecked")
     @Override
     public Class<? extends ComponentProperties>[] getNestedCompatibleComponentPropertiesClass() {
-        return new Class[] { TAzureStorageConnectionProperties.class };
+        return new Class[]{TAzureStorageConnectionProperties.class};
     }
 
     /**
@@ -89,19 +85,6 @@ public abstract class AzureStorageDefinition extends AbstractComponentDefinition
     public static RuntimeInfo getCommonRuntimeInfo(ClassLoader classLoader, Class<? extends SourceOrSink> clazz) {
         return new SimpleRuntimeInfo(classLoader,
                 DependenciesReader.computeDependenciesFilePath(MAVEN_GROUP_ID, MAVEN_ARTIFACT_ID), clazz.getCanonicalName());
-    }
-
-    public String getMavenGroupId() {
-        return MAVEN_GROUP_ID;
-    }
-
-    public String getMavenArtifactId() {
-        return MAVEN_ARTIFACT_ID;
-    }
-
-    @Override
-    public Set<ConnectorTopology> getSupportedConnectorTopologies() {
-        return EnumSet.of(ConnectorTopology.OUTGOING);
     }
 
     @Override

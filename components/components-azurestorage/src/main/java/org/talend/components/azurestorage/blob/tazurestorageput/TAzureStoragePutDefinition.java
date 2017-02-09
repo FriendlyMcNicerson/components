@@ -12,6 +12,10 @@
 // ============================================================================
 package org.talend.components.azurestorage.blob.tazurestorageput;
 
+import java.util.EnumSet;
+import java.util.Set;
+
+import org.talend.components.api.component.ConnectorTopology;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.azurestorage.blob.AzureStorageBlobDefinition;
 import org.talend.daikon.properties.property.Property;
@@ -27,8 +31,8 @@ public class TAzureStoragePutDefinition extends AzureStorageBlobDefinition {
     @SuppressWarnings("rawtypes")
     @Override
     public Property[] getReturnProperties() {
-        return new Property[] { RETURN_ERROR_MESSAGE_PROP, RETURN_ACCOUNT_NAME_PROP, RETURN_ACCOUNT_KEY_PROP,
-                RETURN_CONTAINER_PROP, RETURN_LOCAL_FOLDER_PROP, RETURN_REMOTE_FOLDER_PROP };
+        return new Property[]{RETURN_ERROR_MESSAGE_PROP, RETURN_ACCOUNT_NAME_PROP, RETURN_ACCOUNT_KEY_PROP, RETURN_CONTAINER_PROP,
+                RETURN_LOCAL_FOLDER_PROP, RETURN_REMOTE_FOLDER_PROP};
     }
 
     @Override
@@ -36,7 +40,12 @@ public class TAzureStoragePutDefinition extends AzureStorageBlobDefinition {
         return TAzureStoragePutProperties.class;
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
+    public Set<ConnectorTopology> getSupportedConnectorTopologies() {
+        return EnumSet.of(ConnectorTopology.OUTGOING);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public Class getPropertiesClass() {
         return TAzureStoragePutProperties.class;

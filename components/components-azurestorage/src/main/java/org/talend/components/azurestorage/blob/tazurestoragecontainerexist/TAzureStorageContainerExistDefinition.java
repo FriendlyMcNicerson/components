@@ -12,6 +12,10 @@
 // ============================================================================
 package org.talend.components.azurestorage.blob.tazurestoragecontainerexist;
 
+import java.util.EnumSet;
+import java.util.Set;
+
+import org.talend.components.api.component.ConnectorTopology;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.azurestorage.blob.AzureStorageContainerDefinition;
 import org.talend.daikon.properties.property.Property;
@@ -27,13 +31,13 @@ public class TAzureStorageContainerExistDefinition extends AzureStorageContainer
 
     public TAzureStorageContainerExistDefinition() {
         super(COMPONENT_NAME);
-        setupI18N(new Property<?>[] { RETURN_CONTAINER_EXIST_PROP });
+        setupI18N(new Property<?>[]{RETURN_CONTAINER_EXIST_PROP});
     }
 
     @SuppressWarnings("rawtypes")
     @Override
     public Property[] getReturnProperties() {
-        return new Property[] { RETURN_ERROR_MESSAGE_PROP, RETURN_CONTAINER_PROP, RETURN_CONTAINER_EXIST_PROP };
+        return new Property[]{RETURN_ERROR_MESSAGE_PROP, RETURN_CONTAINER_PROP, RETURN_CONTAINER_EXIST_PROP};
     }
 
     @Override
@@ -41,9 +45,15 @@ public class TAzureStorageContainerExistDefinition extends AzureStorageContainer
         return TAzureStorageContainerExistProperties.class;
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public Class getPropertiesClass() {
         return TAzureStorageContainerExistProperties.class;
     }
+
+    @Override
+    public Set<ConnectorTopology> getSupportedConnectorTopologies() {
+        return EnumSet.of(ConnectorTopology.OUTGOING);
+    }
+
 }

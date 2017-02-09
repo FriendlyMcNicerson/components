@@ -12,14 +12,11 @@
 // ============================================================================
 package org.talend.components.azurestorage.tazurestorageconnection;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.talend.components.api.component.ConnectorTopology;
-import org.talend.components.azurestorage.AzureStorageDefinition;
 import org.talend.daikon.properties.property.Property;
 
 public class TAzureStorageConnectionDefinitionTest {
@@ -47,10 +44,7 @@ public class TAzureStorageConnectionDefinitionTest {
     @SuppressWarnings("deprecation")
     @Test
     public final void testGetReturnProperties() {
-        assertEquals(
-                new Property[] { AzureStorageDefinition.RETURN_ERROR_MESSAGE_PROP,
-                        AzureStorageDefinition.RETURN_ACCOUNT_NAME_PROP, AzureStorageDefinition.RETURN_ACCOUNT_KEY_PROP },
-                def.getReturnProperties());
+        assertEquals(new Property[]{}, def.getReturnProperties());
     }
 
     /**

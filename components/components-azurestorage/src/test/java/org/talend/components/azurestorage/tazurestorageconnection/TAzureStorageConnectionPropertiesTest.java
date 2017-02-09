@@ -61,7 +61,7 @@ public class TAzureStorageConnectionPropertiesTest {
     public final void testGetReferencedConnectionProperties() {
         assertNull(props.getReferencedComponentId());
         assertNull(props.getReferencedConnectionProperties());
-        props.referencedComponent.componentProperties = props;
+        // props.referencedComponent.componentProperties = props;
         // props.referencedComponent.
         // assertNotNull(props.getReferencedComponentId());
         // assertNotNull(props.getReferencedConnectionProperties());

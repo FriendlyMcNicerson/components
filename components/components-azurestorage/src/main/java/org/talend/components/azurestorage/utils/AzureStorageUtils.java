@@ -19,12 +19,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * This class comes from a decompilation of the {@code talend-azure-storage-utils-1.0.0.jar} provided by the
  * tAzureStoragePut component.
  *
  */
 public class AzureStorageUtils {
+
+    private transient static final Logger LOG = LoggerFactory.getLogger(AzureStorageUtils.class);
 
     class LocalFileFilter implements FileFilter {
 
@@ -110,19 +115,18 @@ public class AzureStorageUtils {
                         }
                         if (listings[m].getName().matches(mask)) {
                             localFilePath = listings[m].getAbsolutePath();
-                            if (map.get(key) == null || ((String) map.get(key)).length() <= 0) {
+                            if (map.get(key) == null || map.get(key).length() <= 0) {
                                 newObjectKey = new StringBuilder(String.valueOf(remotedir)).append(listings[m].getName())
                                         .toString();
                             } else {
-                                newObjectKey = new StringBuilder(String.valueOf(remotedir)).append((String) map.get(key))
-                                        .toString();
+                                newObjectKey = new StringBuilder(String.valueOf(remotedir)).append(map.get(key)).toString();
                             }
                             fileMap.put(localFilePath, newObjectKey);
                         }
                         m++;
                     }
                 } else {
-                    System.err.println("No match file(" + key + ") exist!");
+                    LOG.error("No match file(" + key + ") exist!");
                 }
             }
         }

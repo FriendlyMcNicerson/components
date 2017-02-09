@@ -53,11 +53,9 @@ public class AzureStorageUtilsTest {
     public void testGenAzureObjectList() {
         file = new File(folder);
         Map<String, String> result = azureStorageUtils.genAzureObjectList(file, keyparent);
-        System.out.println(result);
         assertNotNull("result cannot be null", result);
         file = new File(folder + "/blob1.txt");
         result = azureStorageUtils.genAzureObjectList(file, keyparent);
-        System.out.println(result);
         assertNotNull("result cannot be null", result);
 
     }
@@ -75,7 +73,6 @@ public class AzureStorageUtilsTest {
         myMap.put("c", "d");
         list.add(myMap);
         Map<String, String> result = azureStorageUtils.genFileFilterList(list, folder, remotedir);
-        System.out.println(result);
         assertNotNull("result cannot be null", result);
     }
 

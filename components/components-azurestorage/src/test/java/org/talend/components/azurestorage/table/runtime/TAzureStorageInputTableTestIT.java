@@ -59,14 +59,13 @@ public class TAzureStorageInputTableTestIT extends AzureStorageTableBaseTestIT {
         propertyMappings.add("PhoneNumber");
 
         properties = new TAzureStorageInputTableProperties("tests");
-        properties = (TAzureStorageInputTableProperties) setupConnectionProperties(
-                (AzureStorageProvideConnectionProperties) properties);
+        properties = (TAzureStorageInputTableProperties) setupConnectionProperties(properties);
     }
 
     public void createSampleDataset(String table) throws Throwable {
         tableClient.getTableReference(table).createIfNotExists();
         TAzureStorageOutputTableProperties props = new TAzureStorageOutputTableProperties("tests");
-        props = (TAzureStorageOutputTableProperties) setupConnectionProperties((AzureStorageProvideConnectionProperties) props);
+        props = (TAzureStorageOutputTableProperties) setupConnectionProperties(props);
         props.setupProperties();
         props.schema.schema.setValue(getDynamicSchema());
         props.actionOnTable.setValue(ActionOnTable.Default);
@@ -136,7 +135,7 @@ public class TAzureStorageInputTableTestIT extends AzureStorageTableBaseTestIT {
         reader.close();
     }
 
-    @SuppressWarnings({ "rawtypes" })
+    @SuppressWarnings({"rawtypes"})
     @Test
     public void testFilterReader() throws Throwable {
         Date startTest = new Date();
@@ -147,7 +146,6 @@ public class TAzureStorageInputTableTestIT extends AzureStorageTableBaseTestIT {
 
         properties.tableName.setValue(ctable);
         // String f = String.format("datetime\'%s:00Z\'", sdf);
-        System.out.println("filter is ... " + sdf);
         properties.useFilterExpression.setValue(true);
         List<String> cols = Arrays.asList("PartitionKey", "Timestamp");
         List<String> ops = Arrays.asList(pk_test1, sdf);

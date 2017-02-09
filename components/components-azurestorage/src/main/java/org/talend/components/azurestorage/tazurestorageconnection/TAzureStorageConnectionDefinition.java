@@ -12,6 +12,9 @@
 // ============================================================================
 package org.talend.components.azurestorage.tazurestorageconnection;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import org.talend.components.api.component.ConnectorTopology;
 import org.talend.components.api.component.runtime.ExecutionEngine;
 import org.talend.components.api.properties.ComponentProperties;
@@ -37,19 +40,16 @@ public class TAzureStorageConnectionDefinition extends AzureStorageDefinition {
         return TAzureStorageConnectionProperties.class;
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public Class getPropertiesClass() {
         return TAzureStorageConnectionProperties.class;
     }
 
-    /**
-     * FIXME - Currently we don't return this values ! Have to create a source and sink class for this ?
-     */
     @SuppressWarnings("rawtypes")
     @Override
     public Property[] getReturnProperties() {
-        return new Property[] { RETURN_ERROR_MESSAGE_PROP, RETURN_ACCOUNT_NAME_PROP, RETURN_ACCOUNT_KEY_PROP };
+        return new Property[]{};
     }
 
     @Override
@@ -60,5 +60,10 @@ public class TAzureStorageConnectionDefinition extends AzureStorageDefinition {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public Set<ConnectorTopology> getSupportedConnectorTopologies() {
+        return EnumSet.of(ConnectorTopology.NONE);
     }
 }

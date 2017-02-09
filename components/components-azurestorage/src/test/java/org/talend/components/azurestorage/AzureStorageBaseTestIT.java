@@ -18,6 +18,8 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ErrorCollector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.talend.components.api.component.runtime.BoundedReader;
 import org.talend.components.api.container.DefaultComponentRuntimeContainerImpl;
 import org.talend.components.api.container.RuntimeContainer;
@@ -49,6 +51,8 @@ public abstract class AzureStorageBaseTestIT {
     private ComponentService componentService;
 
     protected RuntimeContainer runtime;
+
+    private transient static final Logger LOG = LoggerFactory.getLogger(AzureStorageBaseTestIT.class);
 
     /**
      * Instantiates a new AzureStorageBaseTestIT().

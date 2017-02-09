@@ -164,8 +164,6 @@ public class AzureStorageConnectionWizardTest extends AzureStorageGenericBase {
                 .toArray(new ComponentWizard[1]);
         Arrays.sort(subWizards, new WizardNameComparator());
 
-        for (ComponentWizard s : subWizards)
-            System.out.println(s);
         assertEquals(2, subWizards.length);
         // Edit connection wizard - we copy the connection properties, as we present the UI, so we use the
         // connection properties object created by the new wizard

@@ -124,10 +124,8 @@ public class AzureStorageComponentsTest {// extends AzureStorageGenericBase {
     @Test
     public void testAzureStorageDefinition() {
         AzureStorageDefinition def = new TAzureStorageConnectionDefinition();
-        assertEquals(EnumSet.of(ConnectorTopology.OUTGOING), def.getSupportedConnectorTopologies());
+        assertEquals(EnumSet.of(ConnectorTopology.NONE), def.getSupportedConnectorTopologies());
         assertTrue(def.isStartable());
-        assertEquals("org.talend.components", def.getMavenGroupId());
-        assertEquals("components-azurestorage", def.getMavenArtifactId());
     }
 
     @Test

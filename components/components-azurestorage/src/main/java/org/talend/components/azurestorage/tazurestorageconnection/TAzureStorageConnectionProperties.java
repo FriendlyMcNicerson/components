@@ -16,9 +16,10 @@ import static org.talend.daikon.properties.presentation.Widget.widget;
 import static org.talend.daikon.properties.property.PropertyFactory.newEnum;
 import static org.talend.daikon.properties.property.PropertyFactory.newString;
 
+import java.util.EnumSet;
+
 import org.talend.components.api.properties.ComponentPropertiesImpl;
 import org.talend.components.api.properties.ComponentReferenceProperties;
-import org.talend.components.api.properties.ComponentReferencePropertiesEnclosing;
 import org.talend.components.azurestorage.AzureStorageProvideConnectionProperties;
 import org.talend.components.azurestorage.blob.runtime.AzureStorageSourceOrSink;
 import org.talend.daikon.properties.PresentationItem;
@@ -34,7 +35,8 @@ import org.talend.daikon.properties.service.Repository;
  * Class TAzureStorageConnectionProperties.
  */
 public class TAzureStorageConnectionProperties extends ComponentPropertiesImpl
-        implements ComponentReferencePropertiesEnclosing, AzureStorageProvideConnectionProperties {
+        implements
+            AzureStorageProvideConnectionProperties {
 
     private static final long serialVersionUID = 5588521568261191377L;
 
@@ -52,7 +54,8 @@ public class TAzureStorageConnectionProperties extends ComponentPropertiesImpl
     }
 
     /** accountKey - The Azure Storage Account Key. */
-    public Property<String> accountKey = PropertyFactory.newString("accountKey"); //$NON-NLS-1$
+    public Property<String> accountKey = newString("accountKey").setRequired()
+            .setFlags(EnumSet.of(Property.Flags.ENCRYPT, Property.Flags.SUPPRESS_LOGGING));
 
     /** accountName - The Azure Storage Account Name. */
     public Property<String> accountName = PropertyFactory.newString("accountName"); //$NON-NLS-1$
@@ -63,7 +66,8 @@ public class TAzureStorageConnectionProperties extends ComponentPropertiesImpl
 
     public Property<Protocol> protocol = newEnum("protocol", Protocol.class).setRequired(); //$NON-NLS-1$
 
-    public ComponentReferenceProperties referencedComponent = new ComponentReferenceProperties("referencedComponent", this); //$NON-NLS-1$
+    public ComponentReferenceProperties<TAzureStorageConnectionProperties> referencedComponent = new ComponentReferenceProperties<>(
+            "referencedComponent", TAzureStorageConnectionDefinition.COMPONENT_NAME);
 
     public PresentationItem testConnection = new PresentationItem("testConnection", "Test connection");
 
@@ -85,21 +89,21 @@ public class TAzureStorageConnectionProperties extends ComponentPropertiesImpl
         super.setupLayout();
         Form mainForm = new Form(this, Form.MAIN);
         mainForm.addRow(accountName);
-        mainForm.addColumn(accountKey);
+        mainForm.addRow(widget(accountKey).setWidgetType(Widget.HIDDEN_TEXT_WIDGET_TYPE));
         mainForm.addRow(protocol);
         mainForm.addRow(useSharedAccessSignature);
         mainForm.addRow(sharedAccessSignature);
 
         Form refForm = Form.create(this, Form.REFERENCE);
         Widget compListWidget = widget(referencedComponent).setWidgetType(Widget.COMPONENT_REFERENCE_WIDGET_TYPE);
-        referencedComponent.componentType.setValue(TAzureStorageConnectionDefinition.COMPONENT_NAME);
+        // referencedComponent.referenceType.setValue(TAzureStorageConnectionDefinition.COMPONENT_NAME);
         refForm.addRow(compListWidget);
         refForm.addRow(mainForm);
 
         Form wizardForm = Form.create(this, FORM_WIZARD);
         wizardForm.addRow(name);
         wizardForm.addRow(accountName);
-        wizardForm.addRow(accountKey);
+        wizardForm.addRow(widget(accountKey).setWidgetType(Widget.HIDDEN_TEXT_WIDGET_TYPE));
         wizardForm.addRow(protocol);
         wizardForm.addRow(useSharedAccessSignature);
         wizardForm.addRow(sharedAccessSignature);
@@ -130,7 +134,6 @@ public class TAzureStorageConnectionProperties extends ComponentPropertiesImpl
         }
     }
 
-    @Override
     public void afterReferencedComponent() {
         refreshLayout(getForm(Form.MAIN));
         refreshLayout(getForm(Form.REFERENCE));
@@ -155,15 +158,10 @@ public class TAzureStorageConnectionProperties extends ComponentPropertiesImpl
     }
 
     public ValidationResult afterFormFinishWizard(Repository<Properties> repo) throws Exception {
-        System.out.println("Repo " + repo);
         ValidationResult vr = AzureStorageSourceOrSink.validateConnection(this);
         if (vr.getStatus() != ValidationResult.Result.OK) {
             return vr;
         }
-
-        System.out.println("RepoLoc " + repositoryLocation);
-        String s = repo.storeProperties(this, this.name.getValue(), repositoryLocation, null);
-        System.out.println("RepoLoc stored " + s);
 
         return ValidationResult.OK;
     }
@@ -178,7 +176,7 @@ public class TAzureStorageConnectionProperties extends ComponentPropertiesImpl
     }
 
     public TAzureStorageConnectionProperties getReferencedConnectionProperties() {
-        TAzureStorageConnectionProperties refProps = (TAzureStorageConnectionProperties) referencedComponent.componentProperties;
+        TAzureStorageConnectionProperties refProps = referencedComponent.getReference();
         if (refProps != null) {
             return refProps;
         }
