@@ -106,15 +106,14 @@ public class SimpleFileIOOutputRuntime extends PTransform<PCollection<IndexedRec
                             "single character field delimiter", fieldDelimiter);
                 }
 
-                PCollection<String> pc1 = in.apply(ParDo.of(new FormatCsvRecord(fieldDelimiter.charAt(0)));
+                PCollection<String> pc1 = in.apply(ParDo.of(new FormatCsvRecord2(fieldDelimiter.charAt(0))));
                 return pc1.apply(b);
 
             } else {
                 Configuration conf = new Configuration();
                 conf.set(CsvTextOutputFormat.RECORD_DELIMITER, properties.getDatasetProperties().getRecordDelimiter());
                 conf.set(CsvTextOutputFormat.ENCODING, CsvTextOutputFormat.UTF_8);
-                UgiFileSinkBase<NullWritable, Text> sink = new UgiFileSinkBase<>(doAs,
-                        path, CsvTextOutputFormat.class, conf);
+                UgiFileSinkBase<NullWritable, Text> sink = new UgiFileSinkBase<>(doAs, path, CsvTextOutputFormat.class, conf);
 
                 String fieldDelimiter = properties.getDatasetProperties().getFieldDelimiter();
                 if (fieldDelimiter.length() > 1) {
@@ -124,8 +123,8 @@ public class SimpleFileIOOutputRuntime extends PTransform<PCollection<IndexedRec
                     TalendRuntimeException.build(CommonErrorCodes.UNEXPECTED_ARGUMENT).setAndThrow(
                             "single character field delimiter", fieldDelimiter);
 
-                PCollection<KV<NullWritable, Text>> pc1 = in.apply(ParDo.of(new FormatCsvRecord(fieldDelimiter.charAt(0)))).setCoder(
-                        KvCoder.of(WritableCoder.of(NullWritable.class), WritableCoder.of(Text.class)));
+                PCollection<KV<NullWritable, Text>> pc1 = in.apply(ParDo.of(new FormatCsvRecord(fieldDelimiter.charAt(0))))
+                        .setCoder(KvCoder.of(WritableCoder.of(NullWritable.class), WritableCoder.of(Text.class)));
 
                 return pc1.apply(Write.to(sink));
             }
@@ -227,6 +226,35 @@ public class SimpleFileIOOutputRuntime extends PTransform<PCollection<IndexedRec
                 format.print(valueToWrite, sb, sb.length() == 0);
             }
             c.output(KV.of(NullWritable.get(), new Text(sb.toString())));
+            sb.setLength(0);
+        }
+    }
+
+    public static class FormatCsvRecord2 extends DoFn<IndexedRecord, String> {
+
+        public final char fieldDelimiter;
+
+        private final CSVFormat format;
+
+        private StringBuilder sb = new StringBuilder();
+
+        public FormatCsvRecord2(char fieldDelimiter) {
+            this.fieldDelimiter = fieldDelimiter;
+            format = CSVFormat.RFC4180.withDelimiter(fieldDelimiter);
+        }
+
+        @DoFn.ProcessElement
+        public void processElement(ProcessContext c) throws IOException {
+            // Join the strings with the delimiter.
+            IndexedRecord in = c.element();
+            int size = in.getSchema().getFields().size();
+            for (int i = 0; i < size; i++) {
+                Object valueToWrite = in.get(i);
+                if (valueToWrite instanceof ByteBuffer)
+                    valueToWrite = new String(((ByteBuffer) valueToWrite).array());
+                format.print(valueToWrite, sb, sb.length() == 0);
+            }
+            c.output(sb.toString());
             sb.setLength(0);
         }
     }
