@@ -21,6 +21,7 @@ import org.apache.avro.generic.IndexedRecord;
 import org.apache.avro.mapred.AvroKey;
 import org.apache.beam.sdk.coders.KvCoder;
 import org.apache.beam.sdk.coders.VoidCoder;
+import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.io.Write;
 import org.apache.beam.sdk.io.hdfs.WritableCoder;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -90,24 +91,44 @@ public class SimpleFileIOOutputRuntime extends PTransform<PCollection<IndexedRec
         }
 
         case CSV: {
-            Configuration conf = new Configuration();
-            conf.set(CsvTextOutputFormat.RECORD_DELIMITER, properties.getDatasetProperties().getRecordDelimiter());
-            conf.set(CsvTextOutputFormat.ENCODING, CsvTextOutputFormat.UTF_8);
-            UgiFileSinkBase<NullWritable, Text> sink = new UgiFileSinkBase<>(doAs,
-                    properties.getDatasetProperties().path.getValue(), CsvTextOutputFormat.class, conf);
 
-            String fieldDelimiter = properties.getDatasetProperties().getFieldDelimiter();
-            if (fieldDelimiter.length() > 1) {
-                fieldDelimiter = fieldDelimiter.trim();
+            String path = properties.getDatasetProperties().path.getValue();
+
+            if (path.startsWith("gs://")) {
+                TextIO.Write.Bound<String> b = TextIO.Write.to(path);
+
+                String fieldDelimiter = properties.getDatasetProperties().getFieldDelimiter();
+                if (fieldDelimiter.length() > 1) {
+                    fieldDelimiter = fieldDelimiter.trim();
+                }
+                if (fieldDelimiter.isEmpty()) {
+                    TalendRuntimeException.build(CommonErrorCodes.UNEXPECTED_ARGUMENT).setAndThrow(
+                            "single character field delimiter", fieldDelimiter);
+                }
+
+                PCollection<String> pc1 = in.apply(ParDo.of(new FormatCsvRecord(fieldDelimiter.charAt(0)));
+                return pc1.apply(b);
+
+            } else {
+                Configuration conf = new Configuration();
+                conf.set(CsvTextOutputFormat.RECORD_DELIMITER, properties.getDatasetProperties().getRecordDelimiter());
+                conf.set(CsvTextOutputFormat.ENCODING, CsvTextOutputFormat.UTF_8);
+                UgiFileSinkBase<NullWritable, Text> sink = new UgiFileSinkBase<>(doAs,
+                        path, CsvTextOutputFormat.class, conf);
+
+                String fieldDelimiter = properties.getDatasetProperties().getFieldDelimiter();
+                if (fieldDelimiter.length() > 1) {
+                    fieldDelimiter = fieldDelimiter.trim();
+                }
+                if (fieldDelimiter.isEmpty())
+                    TalendRuntimeException.build(CommonErrorCodes.UNEXPECTED_ARGUMENT).setAndThrow(
+                            "single character field delimiter", fieldDelimiter);
+
+                PCollection<KV<NullWritable, Text>> pc1 = in.apply(ParDo.of(new FormatCsvRecord(fieldDelimiter.charAt(0)))).setCoder(
+                        KvCoder.of(WritableCoder.of(NullWritable.class), WritableCoder.of(Text.class)));
+
+                return pc1.apply(Write.to(sink));
             }
-            if (fieldDelimiter.isEmpty())
-                TalendRuntimeException.build(CommonErrorCodes.UNEXPECTED_ARGUMENT).setAndThrow(
-                        "single character field delimiter", fieldDelimiter);
-
-            PCollection<KV<NullWritable, Text>> pc1 = in.apply(ParDo.of(new FormatCsvRecord(fieldDelimiter.charAt(0)))).setCoder(
-                    KvCoder.of(WritableCoder.of(NullWritable.class), WritableCoder.of(Text.class)));
-
-            return pc1.apply(Write.to(sink));
         }
 
         case PARQUET: {
