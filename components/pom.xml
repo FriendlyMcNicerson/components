@@ -20,11 +20,13 @@
         <module>components-localio</module>
         <module>components-processing</module>
 		<module>components-jdbc</module>
-        <module>components-salesforce</module>
-        <module>components-snowflake</module>
         <module>components-splunk</module>
         <module>components-jira</module>
         <module>components-filedelimited</module>
         <module>components-elasticsearch</module>
+
+        <!-- Slow-building components are built last. -->
+        <module>components-salesforce</module>
+        <module>components-snowflake</module>
     </modules>
 </project>
