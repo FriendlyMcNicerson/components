@@ -40,6 +40,7 @@ import org.talend.components.salesforce.SalesforceProvideConnectionProperties;
 import org.talend.components.salesforce.connection.oauth.SalesforceOAuthConnection;
 import org.talend.components.salesforce.schema.SalesforceSchemaHelper;
 import org.talend.components.salesforce.soql.FieldDescription;
+import org.talend.components.salesforce.soql.SoqlBuilder;
 import org.talend.components.salesforce.soql.SoqlQuery;
 import org.talend.daikon.NamedThing;
 import org.talend.daikon.SimpleNamedThing;
@@ -527,6 +528,10 @@ public class SalesforceSourceOrSink implements SourceOrSink, SalesforceSchemaHel
         }
 
         return (Schema) fieldAssembler.endRecord();
+    }
+
+    public String guessQuery(Schema schema, String entityName) {
+        return SoqlBuilder.getInstance().buildQuery(schema, entityName);
     }
 
 }
