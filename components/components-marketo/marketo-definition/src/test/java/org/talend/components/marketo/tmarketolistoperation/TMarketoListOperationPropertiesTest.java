@@ -1,0 +1,159 @@
+// ============================================================================
+//
+// Copyright (C) 2006-2017 Talend Inc. - www.talend.com
+//
+// This source code is available under agreement available at
+// %InstallDIR%\features\org.talend.rcp.branding.%PRODUCTNAME%\%PRODUCTNAME%license.txt
+//
+// You should have received a copy of the agreement
+// along with this program; if not, write to Talend SA
+// 9 rue Pages 92150 Suresnes, France
+//
+// ============================================================================
+package org.talend.components.marketo.tmarketolistoperation;
+
+import static org.junit.Assert.*;
+import static org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties.getRESTSchemaMain;
+import static org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties.getSOAPSchemaMain;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.avro.Schema;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.talend.components.api.component.PropertyPathConnector;
+import org.talend.components.marketo.MarketoTestBase;
+import org.talend.components.marketo.tmarketoconnection.TMarketoConnectionProperties.APIMode;
+import org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties.Operation;
+import org.talend.daikon.properties.ValidationResult.Result;
+import org.talend.daikon.properties.presentation.Form;
+
+/**
+ * Created by undx on 24/01/2017.
+ */
+public class TMarketoListOperationPropertiesTest extends MarketoTestBase {
+
+    TMarketoListOperationProperties props;
+
+    private transient static final Logger LOG = LoggerFactory.getLogger(TMarketoListOperationPropertiesTest.class);
+
+    @Before
+    public void setUp() throws Exception {
+        props = new TMarketoListOperationProperties("test");
+        props.connection.setupProperties();
+        props.connection.setupLayout();
+        props.schemaInput.setupProperties();
+        props.schemaInput.setupLayout();
+        props.setupProperties();
+        props.setupLayout();
+    }
+
+    @Test
+    public void testGetAllSchemaPropertiesConnectors() throws Exception {
+        Set<PropertyPathConnector> connectors = new HashSet<>();
+        assertEquals(Collections.singleton(props.MAIN_CONNECTOR), props.getAllSchemaPropertiesConnectors(false));
+        connectors.add(props.REJECT_CONNECTOR);
+        connectors.add(props.FLOW_CONNECTOR);
+        assertEquals(connectors, props.getAllSchemaPropertiesConnectors(true));
+    }
+
+    @Test
+    public void testRefreshLayout() throws Exception {
+        Form f = props.getForm(Form.MAIN);
+        props.refreshLayout(f);
+        props.afterOperation();
+        assertTrue(f.getWidget(props.multipleOperation.getName()).isVisible());
+        props.operation.setValue(Operation.isMemberOf);
+        props.afterOperation();
+        assertFalse(f.getWidget(props.multipleOperation.getName()).isVisible());
+    }
+
+    @Test
+    public void testAfterApiMode() throws Exception {
+        props.afterApiMode();
+        assertEquals(getRESTSchemaMain(), props.schemaInput.schema.getValue());
+        props.connection.apiMode.setValue(APIMode.SOAP);
+        props.afterApiMode();
+        assertEquals(getSOAPSchemaMain(), props.schemaInput.schema.getValue());
+    }
+
+    @Test
+    public void testUpdateOutputSchemas() throws Exception {
+        Schema s;
+        int mainFieldsCount = props.schemaInput.schema.getValue().getFields().size();
+        // REST
+        props.updateOutputSchemas();
+        s = props.schemaFlow.schema.getValue();
+        assertEquals(mainFieldsCount + 1, s.getFields().size());
+        assertEquals("schemaFlow", s.getName());
+        assertNotNull(s.getField("Status"));
+        assertTrue(s.getField("Status").schema().getType().equals(Schema.Type.STRING));
+
+        s = props.schemaReject.schema.getValue();
+        assertEquals(mainFieldsCount + 2, s.getFields().size());
+        assertEquals("schemaReject", s.getName());
+        assertNotNull(s.getField("Status"));
+        assertTrue(s.getField("Status").schema().getType().equals(Schema.Type.STRING));
+        assertNotNull(s.getField("ERROR_MSG"));
+        assertTrue(s.getField("ERROR_MSG").schema().getType().equals(Schema.Type.STRING));
+        // SOAP
+        props.connection.apiMode.setValue(APIMode.SOAP);
+        props.afterApiMode();
+        props.updateOutputSchemas();
+        mainFieldsCount = props.schemaInput.schema.getValue().getFields().size();
+        s = props.schemaFlow.schema.getValue();
+        assertEquals(mainFieldsCount + 1, s.getFields().size());
+        assertEquals("schemaFlow", s.getName());
+        assertNotNull(s.getField("Success"));
+        assertTrue(s.getField("Success").schema().getType().equals(Schema.Type.BOOLEAN));
+
+        s = props.schemaReject.schema.getValue();
+        assertEquals(mainFieldsCount + 1, s.getFields().size());
+        assertEquals("schemaReject", s.getName());
+        assertNotNull(s.getField("ERROR_MSG"));
+        assertTrue(s.getField("ERROR_MSG").schema().getType().equals(Schema.Type.STRING));
+    }
+
+    @Test
+    public void testGetRESTSchemaMain() throws Exception {
+        Schema s = getRESTSchemaMain();
+        assertEquals(2, s.getFields().size());
+    }
+
+    @Test
+    public void testGetSOAPSchemaMain() throws Exception {
+        Schema s = getSOAPSchemaMain();
+        assertEquals(4, s.getFields().size());
+    }
+
+    @Test
+    public void testAfterSchema() {
+        props.schemaListener.afterSchema();
+    }
+
+    @Test
+    public void testValidation() throws Exception {
+        props.operation.setValue(Operation.isMemberOf);
+        props.multipleOperation.setValue(true);
+        assertEquals(Result.ERROR, props.validateMultipleOperation().getStatus());
+        props.multipleOperation.setValue(false);
+        assertEquals(Result.OK, props.validateMultipleOperation().getStatus());
+        props.operation.setValue(Operation.removeFrom);
+        props.multipleOperation.setValue(true);
+        assertEquals(Result.OK, props.validateMultipleOperation().getStatus());
+        props.multipleOperation.setValue(false);
+        assertEquals(Result.OK, props.validateMultipleOperation().getStatus());
+    }
+
+    @Test
+    public void testEnums() {
+        assertEquals(Operation.addTo, Operation.valueOf("addTo"));
+        assertEquals(Operation.isMemberOf, Operation.valueOf("isMemberOf"));
+        assertEquals(Operation.removeFrom, Operation.valueOf("removeFrom"));
+    }
+
+}
