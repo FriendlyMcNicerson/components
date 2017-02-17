@@ -19,6 +19,7 @@ import static org.talend.components.marketo.tmarketoconnection.TMarketoConnectio
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.inject.Inject;
 
 import org.apache.avro.Schema;
@@ -188,8 +189,8 @@ public class MarketoBaseTestIT {
         ListOperationParameters parms = new ListOperationParameters();
         parms.setApiMode(REST.name());
         parms.setListId(UNDX_TEST_LIST_SMALL_ID);
-        parms.setLeadIds(new Integer[]{createdLeads.get(0), createdLeads.get(1), createdLeads.get(2), createdLeads.get(3),
-                createdLeads.get(4)});
+        parms.setLeadIds(new Integer[] { createdLeads.get(0), createdLeads.get(1), createdLeads.get(2), createdLeads.get(3),
+                createdLeads.get(4) });
         //
         result = datasetsClient.addToList(parms);
         LOG.debug("result = {}.", result);
@@ -198,7 +199,7 @@ public class MarketoBaseTestIT {
 
     public static void cleanupDatasets() {
         LOG.info("Deleting test leads");
-        datasetsClient.deleteLeads(createdLeads.toArray(new Integer[]{}));
+        datasetsClient.deleteLeads(createdLeads.toArray(new Integer[] {}));
         LOG.info("Deleted {} leads.", createdLeads.size());
         createdLeads.clear();
     }
