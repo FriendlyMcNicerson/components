@@ -65,7 +65,7 @@ public class JDBCBeamRuntimeTest implements Serializable {
     Map<Integer, String> assertRows = new HashMap<>();
 
     @Rule
-    public TestPipeline pipeline = TestPipeline.create();
+    public final TestPipeline pipeline = TestPipeline.create();
 
     @BeforeClass
     public static void startDatabase() throws Exception {

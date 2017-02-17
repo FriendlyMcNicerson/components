@@ -55,7 +55,7 @@ public class ElasticsearchBeamRuntimeTestIT implements Serializable {
     Client client;
 
     @Rule
-    public TestPipeline pipeline = TestPipeline.create();
+    public final TestPipeline pipeline = TestPipeline.create();
 
     @Before
     public void init() throws IOException, ExecutionException, InterruptedException {
@@ -166,8 +166,6 @@ public class ElasticsearchBeamRuntimeTestIT implements Serializable {
         inputProperties.init();
         inputProperties.setDatasetProperties(datasetProperties);
         inputProperties.query.setValue("{\"query\":{\"regexp\":{\"field\":\"r[1-3]\"}}}");
-
-        pipeline = TestPipeline.create();
 
         ElasticsearchInputRuntime inputRuntime = new ElasticsearchInputRuntime();
         inputRuntime.initialize(null, inputProperties);
