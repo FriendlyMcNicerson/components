@@ -13,14 +13,23 @@
 package org.talend.components.marketo.runtime.client;
 
 import static java.util.Collections.emptyList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.IncludeExcludeFieldsSOAP.ChangeDataValue;
 import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.LeadKeyTypeREST.email;
 import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.LeadKeyTypeREST.linkedInId;
 import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.LeadSelector.StaticListSelector;
 import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.ListParam.STATIC_LIST_ID;
 import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.ListParam.STATIC_LIST_NAME;
-import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.Operation.*;
+import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.Operation.getLead;
+import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.Operation.getLeadActivity;
+import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.Operation.getLeadChanges;
+import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.Operation.getMultipleLeads;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -128,6 +137,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         MarketoClientService client = source.getClientService();
         fail("Shouldn't be here");
     }
+
     @Test(expected = IOException.class)
     public void testBadURIConnectionString() throws Exception {
         iprops.connection.endpoint.setValue("htps:marketo.comrestv1");
@@ -403,6 +413,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         assertFalse(result.getRecordCount() > 0);
         assertEquals(emptyList(), result.getRecords());
     }
+
     /*
      *
      * ************************ getLeadActivity ************************
@@ -538,6 +549,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         }
         assertTrue(iprops.batchSize.getValue() < counted);
     }
+
     /*
      * 
      * 
@@ -553,7 +565,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         ListOperationParameters parms = new ListOperationParameters();
         parms.setApiMode(APIMode.REST.name());
         parms.setListId(UNDX_TEST_LIST_SMALL_ID);
-        parms.setLeadIds(new Integer[]{createdLeads.get(10)});
+        parms.setLeadIds(new Integer[] { createdLeads.get(10) });
         //
         // first make sure to remove lead
         MarketoSyncResult result = client.removeFromList(parms);
@@ -587,7 +599,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         ListOperationParameters parms = new ListOperationParameters();
         parms.setApiMode(APIMode.REST.name());
         parms.setListId(UNDX_TEST_LIST_SMALL_ID);
-        parms.setLeadIds(new Integer[]{createdLeads.get(0), createdLeads.get(1), createdLeads.get(2)});
+        parms.setLeadIds(new Integer[] { createdLeads.get(0), createdLeads.get(1), createdLeads.get(2) });
         //
         MarketoSyncResult result = client.isMemberOfList(parms);
         LOG.debug("result = {}.", result);
@@ -610,7 +622,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         ListOperationParameters parms = new ListOperationParameters();
         parms.setApiMode(APIMode.REST.name());
         parms.setListId(UNDX_TEST_LIST_SMALL_ID);
-        parms.setLeadIds(new Integer[]{createdLeads.get(20)});
+        parms.setLeadIds(new Integer[] { createdLeads.get(20) });
         //
         // first subscribe lead
         MarketoSyncResult result = client.addToList(parms);
@@ -679,13 +691,18 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         }
     }
 
+    /*
+     *
+     * management func
+     *
+     */
     @Test
     public void testDeleteLeads() throws Exception {
         MarketoSource source = new MarketoSource();
         source.initialize(null, outProperties);
         MarketoRESTClient client = (MarketoRESTClient) source.getClientService();
         //
-        Integer[] ids = {0, 1, 2, 2};
+        Integer[] ids = { 0, 1, 2, 2 };
         MarketoSyncResult result = client.deleteLeads(ids);
         LOG.debug("result = {}.", result);
         List<SyncStatus> changes = result.getRecords();
@@ -697,4 +714,5 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
             LOG.debug("r = {}.", r);
         }
     }
+
 }

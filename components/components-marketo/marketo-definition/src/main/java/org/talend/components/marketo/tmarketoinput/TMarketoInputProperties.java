@@ -14,9 +14,17 @@ package org.talend.components.marketo.tmarketoinput;
 
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.talend.daikon.properties.presentation.Widget.widget;
-import static org.talend.daikon.properties.property.PropertyFactory.*;
+import static org.talend.daikon.properties.property.PropertyFactory.newBoolean;
+import static org.talend.daikon.properties.property.PropertyFactory.newEnum;
+import static org.talend.daikon.properties.property.PropertyFactory.newInteger;
+import static org.talend.daikon.properties.property.PropertyFactory.newString;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
@@ -264,6 +272,14 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
 
     public IncludeExcludeTypesTable excludeTypes = new IncludeExcludeTypesTable("excludeTypes");
 
+    public Property<String> customObjectName = newString("customObjectName");
+
+    public Property<String> customObjectNames = newString("customObjectNames");
+
+    public Property<String> customObjectFilterType = newString("customObjectFilterType");
+
+    public Property<String> customObjectFilterValues = newString("customObjectFilterValues");
+
     private static final long serialVersionUID = 3335746787979781L;
 
     public TMarketoInputProperties(String name) {
@@ -314,6 +330,12 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
         maxReturn.setValue(100);
         sinceDateTime.setValue("yyyy-MM-dd HH:mm:ss Z");
         //
+        // Custom Objects
+        //
+        customObjectName.setValue("");
+        customObjectNames.setValue("");
+        customObjectFilterType.setValue("");
+        customObjectFilterValues.setValue("");
     }
 
     @Override
@@ -399,30 +421,30 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
                 if (useSOAP) {
                     form.getWidget(leadSelectorSOAP.getName()).setVisible(true);
                     switch (leadSelectorSOAP.getValue()) {
-                        case LeadKeySelector :
-                            form.getWidget(leadKeyTypeSOAP.getName()).setVisible(true);
-                            form.getWidget(leadKeyValues.getName()).setVisible(true);
-                            break;
-                        case StaticListSelector :
-                            form.getWidget(listParam.getName()).setVisible(true);
-                            form.getWidget(listParamValue.getName()).setVisible(true);
-                            break;
-                        case LastUpdateAtSelector :
-                            form.getWidget(oldestUpdateDate.getName()).setVisible(true);
-                            form.getWidget(latestUpdateDate.getName()).setVisible(true);
-                            break;
+                    case LeadKeySelector:
+                        form.getWidget(leadKeyTypeSOAP.getName()).setVisible(true);
+                        form.getWidget(leadKeyValues.getName()).setVisible(true);
+                        break;
+                    case StaticListSelector:
+                        form.getWidget(listParam.getName()).setVisible(true);
+                        form.getWidget(listParamValue.getName()).setVisible(true);
+                        break;
+                    case LastUpdateAtSelector:
+                        form.getWidget(oldestUpdateDate.getName()).setVisible(true);
+                        form.getWidget(latestUpdateDate.getName()).setVisible(true);
+                        break;
                     }
                 } else {
                     form.getWidget(leadSelectorREST.getName()).setVisible(true);
                     switch (leadSelectorREST.getValue()) {
-                        case LeadKeySelector :
-                            form.getWidget(leadKeyTypeREST.getName()).setVisible(true);
-                            form.getWidget(leadKeyValues.getName()).setVisible(true);
-                            break;
-                        case StaticListSelector :
-                            form.getWidget(listParam.getName()).setVisible(true);
-                            form.getWidget(listParamValue.getName()).setVisible(true);
-                            break;
+                    case LeadKeySelector:
+                        form.getWidget(leadKeyTypeREST.getName()).setVisible(true);
+                        form.getWidget(leadKeyValues.getName()).setVisible(true);
+                        break;
+                    case StaticListSelector:
+                        form.getWidget(listParam.getName()).setVisible(true);
+                        form.getWidget(listParamValue.getName()).setVisible(true);
+                        break;
                     }
                 }
             }
@@ -472,29 +494,29 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
         Schema s = null;
         if (connection.apiMode.getValue().equals(APIMode.SOAP)) {
             switch (operation.getValue()) {
-                case getLead :
-                case getMultipleLeads :
-                    s = getSOAPSchemaForGetLeadOrGetMultipleLeads();
-                    break;
-                case getLeadActivity :
-                    s = getSOAPSchemaForGetLeadActivity();
-                    break;
-                case getLeadChanges :
-                    s = getSOAPSchemaForGetLeadChanges();
-                    break;
+            case getLead:
+            case getMultipleLeads:
+                s = getSOAPSchemaForGetLeadOrGetMultipleLeads();
+                break;
+            case getLeadActivity:
+                s = getSOAPSchemaForGetLeadActivity();
+                break;
+            case getLeadChanges:
+                s = getSOAPSchemaForGetLeadChanges();
+                break;
             }
         } else {
             switch (operation.getValue()) {
-                case getLead :
-                case getMultipleLeads :
-                    s = getRESTSchemaForGetLeadOrGetMultipleLeads();
-                    break;
-                case getLeadActivity :
-                    s = getRESTSchemaForGetLeadActivity();
-                    break;
-                case getLeadChanges :
-                    s = getRESTSchemaForGetLeadChanges();
-                    break;
+            case getLead:
+            case getMultipleLeads:
+                s = getRESTSchemaForGetLeadOrGetMultipleLeads();
+                break;
+            case getLeadActivity:
+                s = getRESTSchemaForGetLeadActivity();
+                break;
+            case getLeadChanges:
+                s = getRESTSchemaForGetLeadChanges();
+                break;
             }
         }
         schemaInput.schema.setValue(s);

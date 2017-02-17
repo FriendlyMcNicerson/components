@@ -13,16 +13,27 @@
 package org.talend.components.marketo.runtime.client;
 
 import static java.util.Collections.emptyList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.talend.components.marketo.tmarketoconnection.TMarketoConnectionProperties.APIMode.SOAP;
 import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.IncludeExcludeFieldsSOAP.ChangeDataValue;
 import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.IncludeExcludeFieldsSOAP.NewLead;
 import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.LeadKeyTypeSOAP.EMAIL;
-import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.LeadSelector.*;
+import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.LeadSelector.LastUpdateAtSelector;
+import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.LeadSelector.LeadKeySelector;
+import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.LeadSelector.StaticListSelector;
 import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.ListParam.STATIC_LIST_ID;
 import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.ListParam.STATIC_LIST_NAME;
-import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.Operation.*;
+import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.Operation.getLead;
+import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.Operation.getLeadActivity;
+import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.Operation.getLeadChanges;
+import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.Operation.getMultipleLeads;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -556,7 +567,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         ListOperationParameters parms = new ListOperationParameters();
         parms.setApiMode(SOAP.name());
         parms.setListKeyValue(UNDX_TEST_LIST_SMALL);
-        parms.setLeadKeyValue(new String[]{createdLeads.get(10).toString()});
+        parms.setLeadKeyValue(new String[] { createdLeads.get(10).toString() });
         // first make sure to remove lead
         MarketoSyncResult result = client.removeFromList(parms);
         LOG.debug("result = {}.", result);
@@ -590,7 +601,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         parms.setApiMode(SOAP.name());
         parms.setListKeyValue(UNDX_TEST_LIST_SMALL);
         parms.setLeadKeyValue(
-                new String[]{createdLeads.get(0).toString(), createdLeads.get(1).toString(), createdLeads.get(2).toString()});
+                new String[] { createdLeads.get(0).toString(), createdLeads.get(1).toString(), createdLeads.get(2).toString() });
         //
         MarketoSyncResult result = client.isMemberOfList(parms);
         LOG.debug("result = {}.", result);
@@ -613,7 +624,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         ListOperationParameters parms = new ListOperationParameters();
         parms.setApiMode(SOAP.name());
         parms.setListKeyValue(UNDX_TEST_LIST_SMALL);
-        parms.setLeadKeyValue(new String[]{createdLeads.get(20).toString()});
+        parms.setLeadKeyValue(new String[] { createdLeads.get(20).toString() });
         // first subscribe lead
         MarketoSyncResult result = client.addToList(parms);
         List<SyncStatus> changes = result.getRecords();

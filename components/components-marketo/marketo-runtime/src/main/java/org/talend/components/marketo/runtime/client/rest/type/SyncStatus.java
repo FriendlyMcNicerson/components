@@ -13,6 +13,10 @@ public class SyncStatus {
 
     private String errorMessage;
 
+    private String marketoGUID;
+
+    private Integer seq;
+
     public SyncStatus() {
     }
 
@@ -53,14 +57,33 @@ public class SyncStatus {
         this.errorMessage = errorMessage;
     }
 
+    public String getMarketoGUID() {
+        return marketoGUID;
+    }
+
+    public void setMarketoGUID(String marketoGUID) {
+        this.marketoGUID = marketoGUID;
+    }
+
+    public Integer getSeq() {
+        return seq;
+    }
+
+    public void setSeq(Integer seq) {
+        this.seq = seq;
+    }
+
     @Override
     public String toString() {
         final StringBuffer sb = new StringBuffer("SyncStatus{");
         sb.append("id=").append(id);
+        sb.append(", marketoGUID='").append(marketoGUID).append('\'');
+        sb.append(", seq=").append(seq);
         sb.append(", status='").append(status).append('\'');
-        sb.append(", errorMessage='").append(errorMessage).append('\'');
         sb.append(", reasons=").append(reasons);
+        sb.append(", errorMessage='").append(errorMessage).append('\'');
         sb.append('}');
         return sb.toString();
     }
+
 }

@@ -21,36 +21,66 @@ import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
+import org.apache.avro.Schema.Type;
+import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.marketo.MarketoComponentProperties;
-import org.talend.components.marketo.runtime.client.rest.response.*;
+import org.talend.components.marketo.runtime.client.rest.response.AuthenticationResponse;
+import org.talend.components.marketo.runtime.client.rest.response.CustomObjectResult;
+import org.talend.components.marketo.runtime.client.rest.response.DescribeFieldsResult;
+import org.talend.components.marketo.runtime.client.rest.response.LeadActivitiesResult;
+import org.talend.components.marketo.runtime.client.rest.response.LeadChangesResult;
+import org.talend.components.marketo.runtime.client.rest.response.LeadResult;
+import org.talend.components.marketo.runtime.client.rest.response.RequestResult;
+import org.talend.components.marketo.runtime.client.rest.response.StaticListResult;
+import org.talend.components.marketo.runtime.client.rest.response.SyncResult;
+import org.talend.components.marketo.runtime.client.rest.type.FieldDescription;
 import org.talend.components.marketo.runtime.client.rest.type.LeadActivityRecord;
 import org.talend.components.marketo.runtime.client.rest.type.LeadChangeRecord;
 import org.talend.components.marketo.runtime.client.rest.type.ListRecord;
-import org.talend.components.marketo.runtime.client.type.*;
+import org.talend.components.marketo.runtime.client.type.ListOperationParameters;
+import org.talend.components.marketo.runtime.client.type.MarketoError;
+import org.talend.components.marketo.runtime.client.type.MarketoException;
+import org.talend.components.marketo.runtime.client.type.MarketoRecordResult;
+import org.talend.components.marketo.runtime.client.type.MarketoSyncResult;
 import org.talend.components.marketo.tmarketoinput.TMarketoInputProperties;
 import org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.IncludeExcludeFieldsREST;
 import org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.ListParam;
 import org.talend.components.marketo.tmarketooutput.TMarketoOutputProperties;
+import org.talend.daikon.avro.SchemaConstants;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.internal.LinkedTreeMap;
 
-public class MarketoRESTClient extends MarketoClient {
+public class MarketoRESTClient extends MarketoClient implements MarketoClientServiceExtended {
+
+    public static final String API_PATH_JSON_EXT = ".json";
 
     private transient static final Logger LOG = LoggerFactory.getLogger(MarketoRESTClient.class);
+
+    public static final String API_PATTH_CUSTOMOBJECTS = "/v1/customobjects/";
+
+    public static final String API_PATH_URI_DELETE = "/delete.json";
 
     private String accessToken;
 
@@ -267,7 +297,7 @@ public class MarketoRESTClient extends MarketoClient {
         return String.format(first ? "%s=%s" : "&%s=%s", paramName, paramValue);
     }
 
-    public String csvString(Object[] fields) {
+    public static String csvString(Object[] fields) {
         StringBuilder fieldCsv = new StringBuilder();
         for (int i = 0; i < fields.length; i++) {
             fieldCsv.append(fields[i]);
@@ -389,6 +419,7 @@ public class MarketoRESTClient extends MarketoClient {
             }
         };
     }
+
     /*
      *
      *
@@ -489,9 +520,8 @@ public class MarketoRESTClient extends MarketoClient {
     public MarketoRecordResult getLead(TMarketoInputProperties parameters, String offset) {
         String filter = parameters.leadKeyTypeREST.getValue().toString();
         String filterValue = parameters.leadKeyValue.getValue();
-        String[] fields = parameters.mappingInput.getNameMappingsForMarketo().values().toArray(new String[]{});
-        int batchLimit = parameters.batchSize.getValue() > REST_API_BATCH_LIMIT
-                ? REST_API_BATCH_LIMIT
+        String[] fields = parameters.mappingInput.getNameMappingsForMarketo().values().toArray(new String[] {});
+        int batchLimit = parameters.batchSize.getValue() > REST_API_BATCH_LIMIT ? REST_API_BATCH_LIMIT
                 : parameters.batchSize.getValue();
         MarketoRecordResult mkto = new MarketoRecordResult();
         LeadResult result;
@@ -534,9 +564,8 @@ public class MarketoRESTClient extends MarketoClient {
     public MarketoRecordResult getMultipleLeads(TMarketoInputProperties parameters, String offset) {
         String filter;
         String[] filterValues;
-        String[] fields = parameters.mappingInput.getNameMappingsForMarketo().values().toArray(new String[]{});
-        int batchLimit = parameters.batchSize.getValue() > REST_API_BATCH_LIMIT
-                ? REST_API_BATCH_LIMIT
+        String[] fields = parameters.mappingInput.getNameMappingsForMarketo().values().toArray(new String[] {});
+        int batchLimit = parameters.batchSize.getValue() > REST_API_BATCH_LIMIT ? REST_API_BATCH_LIMIT
                 : parameters.batchSize.getValue();
         MarketoRecordResult mkto = new MarketoRecordResult();
         LeadResult result;
@@ -607,8 +636,7 @@ public class MarketoRESTClient extends MarketoClient {
         String sinceDateTime = parameters.sinceDateTime.getValue();
         List<String> incs = parameters.includeTypes.type.getValue();
         List<String> excs = parameters.excludeTypes.type.getValue();
-        int batchLimit = parameters.batchSize.getValue() > REST_API_BATCH_LIMIT
-                ? REST_API_BATCH_LIMIT
+        int batchLimit = parameters.batchSize.getValue() > REST_API_BATCH_LIMIT ? REST_API_BATCH_LIMIT
                 : parameters.batchSize.getValue();
         List<Integer> activityTypeIds = new ArrayList<>();
         // no activity provided, we take all
@@ -674,8 +702,7 @@ public class MarketoRESTClient extends MarketoClient {
     @Override
     public MarketoRecordResult getLeadChanges(TMarketoInputProperties parameters, String offset) {
         String sinceDateTime = parameters.sinceDateTime.getValue();
-        int batchLimit = parameters.batchSize.getValue() > REST_API_BATCH_LIMIT
-                ? REST_API_BATCH_LIMIT
+        int batchLimit = parameters.batchSize.getValue() > REST_API_BATCH_LIMIT ? REST_API_BATCH_LIMIT
                 : parameters.batchSize.getValue();
         String[] fields = parameters.fieldList.getValue().split(",");
         MarketoRecordResult mkto = new MarketoRecordResult();
@@ -884,11 +911,80 @@ public class MarketoRESTClient extends MarketoClient {
         }
         return mkto;
     }
+
     /*
      * 
      * management func
      * 
      */
+
+    // public Schema getFieldSchema(){
+    // return SchemaBuilder.record("fields").fields()//
+    // .name("fieldId").type().
+    // .endRecord();
+    //
+    //
+    // }
+
+    public List<Schema.Field> getAllLeadFields() {
+        webClient.resetQuery();
+        webClient.replacePath(basicPath + "/v1/leads/describe.json").query(FIELD_ACCESS_TOKEN, accessToken);
+        List<Schema.Field> fields = new ArrayList<>();
+        try {
+            LOG.debug("describeLead {}.", webClient.getCurrentURI());
+            DescribeFieldsResult rs = (DescribeFieldsResult) executeGetRequest(DescribeFieldsResult.class);
+            if (!rs.isSuccess())
+                return fields;
+            //
+            for (FieldDescription d : rs.getResult()) {
+                String fname = d.getRest().getName().replaceAll("-", "_");
+                String ftype = d.getDataType();
+                //
+                Type type = Type.STRING;
+                switch (ftype) {
+                case ("string"):
+                case ("text"):
+                case ("phone"):
+                case ("email"):
+                case ("url"):
+                case ("lead_function"):
+                case ("reference"):
+                    type = Type.STRING;
+                    break;
+                case ("integer"):
+                    type = Type.INT;
+                    break;
+                case ("boolean"):
+                    type = Type.BOOLEAN;
+                    break;
+                case ("float"):
+                case ("currency"):
+                    type = Type.FLOAT;
+                    break;
+                case ("date"):
+                case ("datetime"):
+                    type = Type.LONG;
+                    break;
+                default:
+                    LOG.warn("Non managed type : {}. for {}.", d.getDataType(), d);
+                }
+                Field f = new Field(fname, Schema.create(type), d.getDisplayName(), (Object) null);
+                f.addProp("mktoId", d.getId());
+                f.addProp("mktoType", d.getDataType());
+                if (d.getLength() != null)
+                    f.addProp(SchemaConstants.TALEND_COLUMN_DB_LENGTH, d.getLength());
+                if (type.equals(Type.LONG))
+                    f.addProp(SchemaConstants.TALEND_COLUMN_PATTERN, "yyyy-MM-dd HH:mm:ss");
+                if (d.getRest().getReadOnly())
+                    f.addProp(SchemaConstants.TALEND_IS_LOCKED, "true");
+                fields.add(f);
+            }
+        } catch (MarketoException e) {
+            LOG.error("describeLeadFields error: {}.", e.toString());
+        }
+        return fields;
+    }
+
     public MarketoSyncResult deleteLeads(Integer[] leadIds) {
         webClient.resetQuery();
         webClient.replacePath(basicPath + API_PATH_LEADS_DELETE).query(FIELD_ACCESS_TOKEN, accessToken);
@@ -925,4 +1021,403 @@ public class MarketoRESTClient extends MarketoClient {
         return mkto;
     }
 
+    /*
+     * 
+     * Custom Objects
+     * 
+     */
+
+    /**
+     * This method implements
+     * http://developers.marketo.com/rest-api/endpoint-reference/lead-database-endpoint-reference/#!/Custom_Objects/describeUsingGET_1
+     */
+    @Override
+    public MarketoRecordResult describeCustomObject(TMarketoInputProperties parameters) {
+        String customObjectName = parameters.customObjectName.getValue();
+        webClient.resetQuery();
+        webClient.replacePath(basicPath + API_PATTH_CUSTOMOBJECTS + customObjectName + "/describe.json")
+                .query(FIELD_ACCESS_TOKEN, accessToken).query(MarketoRESTClient.QUERY_METHOD, QUERY_METHOD_GET);
+        LOG.debug("describeCustomObject : {}.", webClient.getCurrentURI());
+        MarketoRecordResult mkto = new MarketoRecordResult();
+        mkto.setRemainCount(0);
+        try {
+            CustomObjectResult result = (CustomObjectResult) executeGetRequest(CustomObjectResult.class);
+            LOG.debug("result = {}.", result);
+            mkto.setSuccess(result.isSuccess());
+            mkto.setRequestId(REST + "::" + result.getRequestId());
+            if (mkto.isSuccess()) {
+                mkto.setRecordCount(1);
+                mkto.setRecords(result.getRecords());
+            } else {
+                if (result.getErrors() != null)
+                    mkto.setErrors(result.getErrors());
+            }
+        } catch (MarketoException e) {
+            LOG.error("{}.", e);
+            mkto.setSuccess(false);
+            mkto.setRecordCount(0);
+            mkto.setErrors(Arrays.asList(new MarketoError(REST, e.getMessage())));
+        }
+        return mkto;
+    }
+
+    /**
+     * This method implements
+     * http://developers.marketo.com/rest-api/endpoint-reference/lead-database-endpoint-reference/#!/Custom_Objects/listCustomObjectsUsingGET
+     *
+     * FIXME : According the documentation the 'fields' field should be returned but it's not! So, fields is null.
+     *
+     * TODO : make a BUG REPORT to Marketo.
+     */
+    @Override
+    public MarketoRecordResult listCustomObjects(TMarketoInputProperties parameters) {
+        String names = parameters.customObjectNames.getValue();
+        webClient.resetQuery();
+        webClient.replacePath(basicPath + "/v1/customobjects.json").query(FIELD_ACCESS_TOKEN, accessToken);
+        webClient.query("names", names);
+        webClient.query(MarketoRESTClient.QUERY_METHOD, QUERY_METHOD_GET);
+        LOG.debug("listCustomObjects : {}.", webClient.getCurrentURI());
+        MarketoRecordResult mkto = new MarketoRecordResult();
+        mkto.setRemainCount(0);
+        try {
+            CustomObjectResult result = (CustomObjectResult) executeGetRequest(CustomObjectResult.class);
+            LOG.debug("result = {}.", result);
+            mkto.setSuccess(result.isSuccess());
+            mkto.setRequestId(REST + "::" + result.getRequestId());
+            if (mkto.isSuccess()) {
+                mkto.setRecordCount(result.getResult().size());
+                mkto.setRecords(result.getRecords());
+            } else {
+                if (result.getErrors() != null)
+                    mkto.setErrors(result.getErrors());
+            }
+        } catch (MarketoException e) {
+            LOG.error("{}.", e);
+            mkto.setSuccess(false);
+            mkto.setRecordCount(0);
+            mkto.setErrors(Arrays.asList(new MarketoError(REST, e.getMessage())));
+        }
+        return mkto;
+    }
+
+    public <T> T getValueType(Field field, Object value) {
+        if (value == null)
+            return (T) value;
+        Schema convSchema = field.schema();
+        Schema.Type type = field.schema().getType();
+        if (convSchema.getType().equals(Type.UNION)) {
+            for (Schema s : field.schema().getTypes()) {
+                if (s.getType() != Type.NULL) {
+                    type = s.getType();
+                    break;
+                }
+            }
+        }
+        switch (type) {
+        case STRING:
+            return (T) value;
+        case INT:
+            return (T) (Integer) Float.valueOf(value.toString()).intValue();
+        case BOOLEAN:
+            return (T) Boolean.valueOf(value.toString());
+        case FLOAT:
+            return (T) Float.valueOf(value.toString());
+        case DOUBLE:
+            return (T) Double.valueOf(value.toString());
+        case LONG:
+            String clazz = field.getProp(SchemaConstants.JAVA_CLASS_FLAG);
+            if (clazz != null && clazz.equals(Date.class.getCanonicalName())) {
+                Date dt = null;
+                try {
+                    dt = new SimpleDateFormat(field.getProp(SchemaConstants.TALEND_COLUMN_PATTERN)).parse(value.toString());
+                    return (T) dt;
+                } catch (ParseException e) {
+                    LOG.error("Error while parsing date : {}", e.getMessage());
+                }
+            } else {
+                return (T) Long.valueOf(value.toString());
+            }
+            break;
+        default:
+            LOG.warn("Not managed -> type: {}, value: {}.", convSchema.getType(), value);
+            return (T) value;
+        }
+        return null;
+    }
+
+    public List<IndexedRecord> parseCustomObjectRecords(List<LinkedTreeMap> customObjectRecords, Schema schema) {
+        List<IndexedRecord> records = new ArrayList<>();
+        if (customObjectRecords == null || schema == null)
+            return records;
+        for (LinkedTreeMap cor : customObjectRecords) {
+            IndexedRecord record = new GenericData.Record(schema);
+            for (Field f : schema.getFields()) {
+                Object o = cor.get(f.name());
+                record.put(f.pos(), getValueType(f, o));
+            }
+            records.add(record);
+        }
+        return records;
+    }
+
+    public MarketoRecordResult executeGetRequest(Schema schema) throws MarketoException {
+        Response response = webClient.get();
+        if (response.getStatus() == 200 && response.hasEntity()) {
+            InputStream inStream = response.readEntity(InputStream.class);
+            Reader reader = new InputStreamReader(inStream);
+            Gson gson = new Gson();
+            MarketoRecordResult mkr = new MarketoRecordResult();
+            LinkedTreeMap ltm = (LinkedTreeMap) gson.fromJson(reader, Object.class);
+            mkr.setRequestId(REST + "::" + ltm.get("requestId"));
+            mkr.setSuccess(Boolean.parseBoolean(ltm.get("success").toString()));
+            mkr.setStreamPosition((String) ltm.get("nextPageToken"));
+            if (!mkr.isSuccess() && ltm.get("errors") != null) {
+                List<LinkedTreeMap> errors = (List<LinkedTreeMap>) ltm.get("errors");
+                for (LinkedTreeMap err : errors) {
+                    MarketoError error = new MarketoError(REST, (String) err.get("code"), (String) err.get("message"));
+                    mkr.setErrors(Arrays.asList(error));
+                }
+            }
+            if (mkr.isSuccess()) {
+                List<LinkedTreeMap> tmp = (List<LinkedTreeMap>) ltm.get("result");
+                if (tmp != null) {
+                    mkr.setRecordCount(tmp.size());
+                    mkr.setRecords(parseCustomObjectRecords(tmp, schema));
+                }
+                if (mkr.getStreamPosition() != null) {
+                    mkr.setRemainCount(mkr.getRecordCount());
+                }
+            }
+            return mkr;
+        } else {
+            throw new MarketoException(REST, response.getStatus(), "Request failed! Please check your request setting!");
+        }
+    }
+
+    public MarketoRecordResult executePostRequest(String postContent) throws MarketoException {
+        Response response = webClient.post(postContent);
+        if (response.getStatus() == 200 && response.hasEntity()) {
+            InputStream inStream = response.readEntity(InputStream.class);
+            Reader reader = new InputStreamReader(inStream);
+            Gson gson = new Gson();
+            LinkedTreeMap ltm = (LinkedTreeMap) gson.fromJson(reader, Object.class);
+            MarketoRecordResult mkr = new MarketoRecordResult();
+            mkr.setRequestId(REST + "::" + ltm.get("requestId"));
+            mkr.setSuccess(Boolean.parseBoolean(ltm.get("success").toString()));
+            LOG.warn("ltm = {}.", ltm);
+            return mkr;
+        }
+        throw new MarketoException(REST, response.getStatus(), "Request failed! Please check your request setting!");
+    }
+
+    /**
+     * This method implements
+     * http://developers.marketo.com/rest-api/endpoint-reference/lead-database-endpoint-reference/#!/Custom_Objects/getCustomObjectsUsingGET
+     *
+     * Retrieves a list of custom objects records based on filter and set of values. When action is createOnly, idField
+     * may not be used as a key and marketoGUID cannot be a member of any object records.
+     *
+     * 
+     * Default :
+     *
+     * {"requestId":"11883#15a4708d01d","result":[{"seq":0,"marketoGUID":"5ecebec6-1224-4055-a543-2351d1b2feb1","model":"iPhone
+     * 7","updatedAt":"2017-02-15T16:25:43Z","createdAt":"2017-02-15T16:25:43Z"},{"seq":1,"marketoGUID":"4ef3c4a9-69f6-4b47-89cd-e71719ec4612","model":"iPhone
+     * 7 S","updatedAt":"2017-02-15T16:25:43Z","createdAt":"2017-02-15T16:25:43Z"}],"success":true}
+     *
+     * With parameter fields=brand,model,customerId
+     * {"requestId":"ca9#15a47071363","result":[{"seq":0,"marketoGUID":"5ecebec6-1224-4055-a543-2351d1b2feb1","model":"iPhone
+     * 7","customerId":"3113477","brand":"Apple"},{"seq":1,"marketoGUID":"4ef3c4a9-69f6-4b47-89cd-e71719ec4612","model":"iPhone
+     * 7 S","customerId":"3113479","brand":"Apple"}],"success":true}
+     */
+    @Override
+    public MarketoRecordResult getCustomObjects(TMarketoInputProperties parameters, String offset) {
+        // mandatory fields for request
+        String customObjectName = parameters.customObjectName.getValue();
+        String filterType = parameters.customObjectFilterType.getValue();
+        String filterValues = parameters.customObjectFilterValues.getValue();
+        // if fields is unset : marketoGuid, dedupeFields (defined in mkto), updatedAt, createdAt will be returned.
+        String fields = "";
+        //
+        int batchLimit = parameters.batchSize.getValue() > REST_API_BATCH_LIMIT ? REST_API_BATCH_LIMIT
+                : parameters.batchSize.getValue();
+        //
+        Schema schema = parameters.schemaInput.schema.getValue();
+        LOG.warn("schema = {}.", schema);
+        //
+        webClient.resetQuery();
+        webClient.replacePath(basicPath + API_PATTH_CUSTOMOBJECTS + customObjectName + API_PATH_JSON_EXT)
+                .query(FIELD_ACCESS_TOKEN, accessToken).query("filterType", filterType).query("filterValues", filterValues)
+                .query(FIELD_BATCH_SIZE, batchLimit);
+        if (offset != null)
+            webClient.query(FIELD_NEXT_PAGE_TOKEN, offset);
+        // in body :
+        // input (Array[CustomObject]): Input list of records. When using a single key, the list is a comma-separated
+        // list of values. When using a compound key, the request must be sent as a JSON object, and each record must
+        // include each of the fields in the compound key. Compound keys are determined by the contents of
+        // 'dedupeFields' in the describe result for the object ,
+
+        LOG.debug("getCustomObjects : {}.", webClient.getCurrentURI());
+        MarketoRecordResult mkto = new MarketoRecordResult();
+        try {
+            // Should return:
+            // marketoGUID (string): Unique GUID of the custom object records ,
+            // reasons (Array[Reason], optional),
+            // seq (integer): Integer indicating the sequence of the record in response. This value is
+            // correlated to the order of the records included in the request input. Seq should only be part of
+            // responses and should not be submitted.
+            mkto = executeGetRequest(schema);
+            LOG.debug("result = {}.", mkto);
+        } catch (MarketoException e) {
+            LOG.error("{}.", e);
+            mkto.setSuccess(false);
+            mkto.setRecordCount(0);
+            mkto.setErrors(Arrays.asList(e.toMarketoError()));
+        }
+        return mkto;
+    }
+
+    /**
+     * This method implements
+     * http://developers.marketo.com/rest-api/endpoint-reference/lead-database-endpoint-reference/#!/Custom_Objects/syncCustomObjectsUsingPOST
+     *
+     * Inserts, updates, or upserts custom object records to the target instance.
+     *
+     * 
+     */
+    @Override
+    public MarketoSyncResult syncCustomObjects(TMarketoOutputProperties parameters, List<IndexedRecord> records) {
+        // mandatory fields for request
+        String customObjectName = parameters.customObjectName.getValue();
+        // others
+        String action = parameters.customObjectSyncAction.getValue().name();
+        String dedupeBy = parameters.customObjectDedupeBy.getValue();
+        // input (Array[CustomObject]): List of input records
+        JsonObject inputJson = new JsonObject();
+        Gson gson = new Gson();
+        inputJson.addProperty("action", action);
+        if (!dedupeBy.isEmpty()) {
+            inputJson.addProperty("dedupeBy", dedupeBy);
+        }
+        List<Map<String, Object>> leadsObjects = new ArrayList<>();
+        for (IndexedRecord r : records) {
+            Map<String, Object> lead = new HashMap<String, Object>();
+            for (Field f : r.getSchema().getFields()) {
+                lead.put(f.name(), r.get(f.pos()));
+            }
+            leadsObjects.add(lead);
+        }
+        inputJson.add(FIELD_INPUT, gson.toJsonTree(leadsObjects));
+        MarketoSyncResult mkto = new MarketoSyncResult();
+        webClient.resetQuery();
+        webClient.replacePath(basicPath + API_PATTH_CUSTOMOBJECTS + customObjectName + API_PATH_JSON_EXT)
+                .query(FIELD_ACCESS_TOKEN, accessToken);
+        try {
+            LOG.debug("syncCustomObjects {}{}.", webClient.getCurrentURI(), inputJson);
+            SyncResult rs = (SyncResult) executePostRequest(SyncResult.class, inputJson);
+            //
+            mkto.setRequestId(REST + "::" + rs.getRequestId());
+            mkto.setStreamPosition(rs.getNextPageToken());
+            mkto.setSuccess(rs.isSuccess());
+            if (mkto.isSuccess()) {
+                mkto.setRecordCount(rs.getResult().size());
+                mkto.setRemainCount(mkto.getStreamPosition() != null ? mkto.getRecordCount() : 0);
+                mkto.setRecords(rs.getResult());
+            } else {
+                mkto.setRecordCount(0);
+                mkto.setErrors(Arrays.asList(new MarketoError(REST, "")));
+            }
+            LOG.debug("rs = {}.", rs);
+        } catch (MarketoException e) {
+            mkto.setSuccess(false);
+            mkto.setErrors(Arrays.asList(e.toMarketoError()));
+        }
+        return mkto;
+    }
+
+    /**
+     * This method implements
+     * http://developers.marketo.com/rest-api/endpoint-reference/lead-database-endpoint-reference/#!/Custom_Objects/deleteCustomObjectsUsingPOST
+     *
+     * Deletes a given set of custom object records
+     *
+     *
+     *
+     * DeleteCustomObjectRequest
+     *
+     * { deleteBy (string, optional): Field to delete records by. Permissible values are idField or dedupeFields as
+     * indicated by the result of the corresponding describe record,
+     *
+     * input (Array[CustomObject]): List of input records }
+     *
+     *
+     * CustomObject {
+     *
+     * marketoGUID (string): Unique GUID of the custom object records ,
+     *
+     * reasons (Array[Reason], optional),
+     *
+     * seq (integer): Integer indicating the sequence of the record in response. This value is correlated to the order
+     * of the records included in the request input. Seq should only be part of responses and should not be submitted. }
+     *
+     *
+     * Reason {
+     *
+     * code (string): Integer code of the reason ,
+     *
+     * message (string): Message describing the reason for the status of the operation }
+     *
+     *
+     */
+    @Override
+    public MarketoSyncResult deleteCustomObjects(TMarketoOutputProperties parameters, List<IndexedRecord> records) {
+        // mandatory fields for request
+        String customObjectName = parameters.customObjectName.getValue();
+        /*
+         * deleteBy : idField || dedupeFields.
+         *
+         * Sample with describe smartphone : ... "idField": "marketoGUID", "dedupeFields": "[\"model\"]",...
+         */
+        String deleteBy = parameters.customObjectDeleteBy.getValue();
+        //
+        // input (Array[CustomObject]): List of input records
+        JsonObject inputJson = new JsonObject();
+        Gson gson = new Gson();
+        if (!deleteBy.isEmpty()) {
+            inputJson.addProperty("deleteBy", deleteBy);
+        }
+        List<Map<String, Object>> leadsObjects = new ArrayList<>();
+        for (IndexedRecord r : records) {
+            Map<String, Object> lead = new HashMap<String, Object>();
+            for (Field f : r.getSchema().getFields()) {
+                lead.put(f.name(), r.get(f.pos()));
+            }
+            leadsObjects.add(lead);
+        }
+        inputJson.add(FIELD_INPUT, gson.toJsonTree(leadsObjects));
+        //
+        webClient.resetQuery();
+        webClient.replacePath(basicPath + API_PATTH_CUSTOMOBJECTS + customObjectName + API_PATH_URI_DELETE)
+                .query(FIELD_ACCESS_TOKEN, accessToken);
+        MarketoSyncResult mkto = new MarketoSyncResult();
+        try {
+            LOG.debug("deleteCustomObject {}{}.", webClient.getCurrentURI(), inputJson);
+            SyncResult rs = (SyncResult) executePostRequest(SyncResult.class, inputJson);
+            LOG.debug("rs = {}.", rs);
+            mkto.setRequestId(REST + "::" + rs.getRequestId());
+            mkto.setStreamPosition(rs.getNextPageToken());
+            mkto.setSuccess(rs.isSuccess());
+            if (mkto.isSuccess()) {
+                mkto.setRecordCount(rs.getResult().size());
+                mkto.setRemainCount(mkto.getStreamPosition() != null ? mkto.getRecordCount() : 0);
+                mkto.setRecords(rs.getResult());
+            } else {
+                mkto.setRecordCount(0);
+                mkto.setErrors(Arrays.asList(new MarketoError(REST, "")));
+            }
+        } catch (MarketoException e) {
+            mkto.setSuccess(false);
+            mkto.setErrors(Arrays.asList(e.toMarketoError()));
+        }
+        return mkto;
+    }
 }

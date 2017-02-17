@@ -15,6 +15,7 @@ package org.talend.components.marketo.tmarketooutput;
 import static org.talend.daikon.properties.presentation.Widget.widget;
 import static org.talend.daikon.properties.property.PropertyFactory.newBoolean;
 import static org.talend.daikon.properties.property.PropertyFactory.newEnum;
+import static org.talend.daikon.properties.property.PropertyFactory.newString;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -83,6 +84,25 @@ public class TMarketoOutputProperties extends MarketoComponentProperties {
     public Property<Boolean> deDupeEnabled = newBoolean("deDupeEnabled");
 
     public MarketoColumnMappingsTable mappingInput = new MarketoColumnMappingsTable("mappingInput");
+    /*
+     * Custom Objects
+     * 
+     */
+
+    public enum CustomObjectSyncAction {
+        createOnly,
+        updateOnly,
+        createOrUpdate
+    }
+
+    public Property<String> customObjectName = newString("customObjectName");
+
+    public Property<CustomObjectSyncAction> customObjectSyncAction = newEnum("customObjectSyncAction",
+            CustomObjectSyncAction.class);
+
+    public Property<String> customObjectDedupeBy = newString("customObjectDedupeBy");
+
+    public Property<String> customObjectDeleteBy = newString("customObjectDeleteBy");
 
     public TMarketoOutputProperties(String name) {
         super(name);
@@ -124,6 +144,13 @@ public class TMarketoOutputProperties extends MarketoComponentProperties {
                 refreshLayout(getForm(Form.MAIN));
             }
         });
+
+        // Custom Objects
+        customObjectName.setValue("");
+        customObjectDedupeBy.setValue("");
+        customObjectSyncAction.setPossibleValues(CustomObjectSyncAction.values());
+        customObjectSyncAction.setValue(CustomObjectSyncAction.createOrUpdate);
+        customObjectDeleteBy.setValue("");
     }
 
     @Override

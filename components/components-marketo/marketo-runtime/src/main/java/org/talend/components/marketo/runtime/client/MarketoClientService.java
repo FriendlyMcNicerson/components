@@ -25,7 +25,7 @@ public interface MarketoClientService {
 
     String getApi();
 
-    //
+    // Leads
     MarketoRecordResult getLead(TMarketoInputProperties parameters, String offset);
 
     MarketoRecordResult getMultipleLeads(TMarketoInputProperties parameters, String offset);
@@ -34,15 +34,16 @@ public interface MarketoClientService {
 
     MarketoRecordResult getLeadChanges(TMarketoInputProperties parameters, String offset);
 
-    //
+    // List Operations
     MarketoSyncResult addToList(ListOperationParameters parameters);
 
     MarketoSyncResult isMemberOfList(ListOperationParameters parameters);
 
     MarketoSyncResult removeFromList(ListOperationParameters parameters);
 
-    //
+    // Sync Lead
     MarketoSyncResult syncLead(TMarketoOutputProperties parameters, IndexedRecord lead);
 
     MarketoSyncResult syncMultipleLeads(TMarketoOutputProperties parameters, List<IndexedRecord> leads);
+
 }
