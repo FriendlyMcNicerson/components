@@ -218,7 +218,7 @@ public class MarketoRESTClient extends MarketoClient implements MarketoClientSer
         try {
             response = webClient.post("grant_type=client_credentials&client_secret=" + secretKey + "&client_id=" + userId);
         } catch (Exception e) {
-            // TODO mangage SocketTimeoutException with timeout and retry properties
+            // TODO mangage SocketTimeoutException and SocketException with timeout and retry properties
             LOG.error("AccessToken error: {}.", e.getMessage());
             throw new MarketoException(REST, "Marketo Authentication failed : " + e.getMessage());
         }

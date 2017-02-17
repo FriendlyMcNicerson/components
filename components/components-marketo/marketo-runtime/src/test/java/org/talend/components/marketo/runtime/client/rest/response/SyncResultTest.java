@@ -24,18 +24,21 @@ import org.talend.components.marketo.runtime.client.rest.type.SyncStatus;
 public class SyncResultTest {
 
     SyncResult r;
+
     @Before
     public void setUp() throws Exception {
         r = new SyncResult();
         r.setResult(Arrays.asList(new SyncStatus()));
     }
+
     @Test
     public void testGetResult() throws Exception {
         assertNotNull(r.getResult());
     }
+
     @Test
     public void testToString() throws Exception {
-        String s = "SyncResult{requestId='null', success=false, errors=null, result=[SyncStatus{id=null, status='null', errorMessage='null', reasons=null}], moreResult=false, nextPageToken=null}";
+        String s = "SyncResult{requestId='null', success=false, errors=null, result=[SyncStatus{id=null, marketoGUID='null', seq=null, status='null', reasons=null, errorMessage='null'}], moreResult=false, nextPageToken=null}";
         assertEquals(s, r.toString());
     }
 }

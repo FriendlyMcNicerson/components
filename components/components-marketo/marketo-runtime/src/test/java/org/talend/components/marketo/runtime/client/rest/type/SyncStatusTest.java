@@ -26,6 +26,7 @@ import org.junit.Test;
 public class SyncStatusTest {
 
     SyncStatus s;
+
     @Before
     public void setUp() throws Exception {
         s = new SyncStatus();
@@ -54,7 +55,7 @@ public class SyncStatusTest {
 
     @Test
     public void testToString() throws Exception {
-        String st = "SyncStatus{id=1, status='status', errorMessage='null', reasons=[]}";
+        String st = "SyncStatus{id=1, marketoGUID='null', seq=null, status='status', reasons=[], errorMessage='null'}";
         assertEquals(st, s.toString());
     }
 }
