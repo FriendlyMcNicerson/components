@@ -18,7 +18,12 @@
 	<artifactId>components-salesforce-runtime</artifactId>
 	<packaging>bundle</packaging>
 	<dependencies>
-
+		<dependency>
+            <groupId>org.talend.components</groupId>
+            <artifactId>components-salesforce-definition</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
 		<dependency>
 			<groupId>com.force.api</groupId>
 			<artifactId>force-wsc</artifactId>
