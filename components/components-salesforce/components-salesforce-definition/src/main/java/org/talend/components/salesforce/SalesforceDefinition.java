@@ -45,7 +45,7 @@ public abstract class SalesforceDefinition extends AbstractComponentDefinition {
 
     public static RuntimeInfo getCommonRuntimeInfo(ClassLoader classLoader, String clazzFullName) {
         return new SimpleRuntimeInfo(classLoader,
-                DependenciesReader.computeDependenciesFilePath("org.talend.components", "components-salesforce"), clazzFullName);
+                DependenciesReader.computeDependenciesFilePath("org.talend.components", "components-salesforce-runtime"), clazzFullName);
     }
 
 }

@@ -23,16 +23,18 @@ import org.talend.components.api.properties.ComponentPropertiesImpl;
 import org.talend.components.api.properties.ComponentReferenceProperties;
 import org.talend.components.common.ProxyProperties;
 import org.talend.components.common.oauth.OauthProperties;
-import org.talend.components.salesforce.runtime.SalesforceSourceOrSink;
+import org.talend.components.salesforce.runtime.SalesforceRuntimeAdapter;
 import org.talend.components.salesforce.tsalesforceconnection.TSalesforceConnectionDefinition;
 import org.talend.daikon.properties.PresentationItem;
 import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
 import org.talend.daikon.properties.property.Property;
+import org.talend.daikon.runtime.RuntimeInfo;
+import org.talend.daikon.runtime.RuntimeUtil;
+import org.talend.daikon.sandbox.SandboxedInstance;
 
-public class SalesforceConnectionProperties extends ComponentPropertiesImpl
-        implements SalesforceProvideConnectionProperties {
+public class SalesforceConnectionProperties extends ComponentPropertiesImpl implements SalesforceProvideConnectionProperties {
 
     public static final String URL = "https://www.salesforce.com/services/Soap/u/37.0";
 
@@ -152,8 +154,6 @@ public class SalesforceConnectionProperties extends ComponentPropertiesImpl
         refreshLayout(getForm(Form.ADVANCED));
     }
 
-
-
     public void afterReferencedComponent() {
         refreshLayout(getForm(Form.MAIN));
         refreshLayout(getForm(Form.REFERENCE));
@@ -169,14 +169,22 @@ public class SalesforceConnectionProperties extends ComponentPropertiesImpl
     }
 
     public ValidationResult validateTestConnection() throws Exception {
-        ValidationResult vr = SalesforceSourceOrSink.validateConnection(this);
-        if (vr.getStatus() == ValidationResult.Result.OK) {
-            vr.setMessage("Connection successful");
-            getForm(FORM_WIZARD).setAllowForward(true);
-        } else {
-            getForm(FORM_WIZARD).setAllowForward(false);
+        ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader,
+                "org.talend.components.salesforce.runtime.SalesforceSourceOrSink");
+        try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
+                classLoader)) {
+            SalesforceRuntimeAdapter ss = (SalesforceRuntimeAdapter) sandboxedInstance.getInstance();
+            ss.initialize(null, this);
+            ValidationResult vr = ss.validate(null);
+            if (vr.getStatus() == ValidationResult.Result.OK) {
+                vr.setMessage("Connection successful");
+                getForm(FORM_WIZARD).setAllowForward(true);
+            } else {
+                getForm(FORM_WIZARD).setAllowForward(false);
+            }
+            return vr;
         }
-        return vr;
     }
 
     @Override

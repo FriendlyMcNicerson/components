@@ -12,15 +12,17 @@
 // ============================================================================
 package org.talend.components.salesforce;
 
-import static org.talend.daikon.properties.presentation.Widget.*;
-import static org.talend.daikon.properties.property.PropertyFactory.*;
+import static org.talend.daikon.properties.presentation.Widget.widget;
+import static org.talend.daikon.properties.property.PropertyFactory.newProperty;
 
 import java.util.List;
 
 import org.apache.avro.Schema;
 import org.apache.commons.lang3.reflect.TypeLiteral;
+import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.properties.ComponentPropertiesImpl;
-import org.talend.components.salesforce.runtime.SalesforceSourceOrSink;
+import org.talend.components.salesforce.runtime.ExceptionUtil;
+import org.talend.components.salesforce.runtime.SalesforceRuntimeAdapter;
 import org.talend.daikon.NamedThing;
 import org.talend.daikon.properties.Properties;
 import org.talend.daikon.properties.ValidationResult;
@@ -28,6 +30,9 @@ import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
 import org.talend.daikon.properties.property.Property;
 import org.talend.daikon.properties.service.Repository;
+import org.talend.daikon.runtime.RuntimeInfo;
+import org.talend.daikon.runtime.RuntimeUtil;
+import org.talend.daikon.sandbox.SandboxedInstance;
 
 public class SalesforceModuleListProperties extends ComponentPropertiesImpl implements SalesforceProvideConnectionProperties {
 
@@ -72,31 +77,56 @@ public class SalesforceModuleListProperties extends ComponentPropertiesImpl impl
     }
 
     public void beforeFormPresentMain() throws Exception {
-        moduleNames = SalesforceSourceOrSink.getSchemaNames(null, this);
-        selectedModuleNames.setPossibleValues(moduleNames);
-        getForm(Form.MAIN).setAllowBack(true);
-        getForm(Form.MAIN).setAllowFinish(true);
+        ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader,
+                "org.talend.components.salesforce.runtime.SalesforceSourceOrSink");
+        try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
+                classLoader)) {
+            SalesforceRuntimeAdapter ss = (SalesforceRuntimeAdapter) sandboxedInstance.getInstance();
+            ss.initialize(null, this);
+            ValidationResult vr = ss.validate(null);
+            if (vr.getStatus() == ValidationResult.Result.OK) {
+                try {
+                    moduleNames = ss.getSchemaNames(null);
+                } catch (Exception ex) {
+                    throw new ComponentException(ExceptionUtil.exceptionToValidationResult(ex));
+                }
+                selectedModuleNames.setPossibleValues(moduleNames);
+                getForm(Form.MAIN).setAllowBack(true);
+                getForm(Form.MAIN).setAllowFinish(true);
+            } else {
+                throw new ComponentException(vr);
+            }
+        }
     }
 
     public ValidationResult afterFormFinishMain(Repository<Properties> repo) throws Exception {
-        ValidationResult vr = SalesforceSourceOrSink.validateConnection(this);
-        if (vr.getStatus() != ValidationResult.Result.OK) {
-            return vr;
-        }
+        ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader,
+                "org.talend.components.salesforce.runtime.SalesforceSourceOrSink");
+        try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
+                classLoader)) {
+            SalesforceRuntimeAdapter ss = (SalesforceRuntimeAdapter) sandboxedInstance.getInstance();
+            ss.initialize(null, this);
+            ValidationResult vr = ss.validate(null);
+            if (vr.getStatus() != ValidationResult.Result.OK) {
+                return vr;
+            }
 
-        String connRepLocation = repo.storeProperties(connection, connection.name.getValue(), repositoryLocation, null);
+            String connRepLocation = repo.storeProperties(connection, connection.name.getValue(), repositoryLocation, null);
 
-        for (NamedThing nl : selectedModuleNames.getValue()) {
-            String moduleId = nl.getName();
-            SalesforceModuleProperties modProps = new SalesforceModuleProperties(moduleId);
-            modProps.connection = connection;
-            modProps.init();
-            Schema schema = SalesforceSourceOrSink.getSchema(null, this, moduleId);
-            modProps.moduleName.setValue(moduleId);
-            modProps.main.schema.setValue(schema);
-            repo.storeProperties(modProps, nl.getName(), connRepLocation, "main.schema");
+            for (NamedThing nl : selectedModuleNames.getValue()) {
+                String moduleId = nl.getName();
+                SalesforceModuleProperties modProps = new SalesforceModuleProperties(moduleId);
+                modProps.connection = connection;
+                modProps.init();
+                Schema schema = ss.getEndpointSchema(null, moduleId);
+                modProps.moduleName.setValue(moduleId);
+                modProps.main.schema.setValue(schema);
+                repo.storeProperties(modProps, nl.getName(), connRepLocation, "main.schema");
+            }
+            return ValidationResult.OK;
         }
-        return ValidationResult.OK;
     }
 
     @Override

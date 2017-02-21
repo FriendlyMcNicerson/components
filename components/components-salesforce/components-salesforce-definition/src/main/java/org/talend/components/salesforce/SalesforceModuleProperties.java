@@ -12,21 +12,26 @@
 // ============================================================================
 package org.talend.components.salesforce;
 
-import static org.talend.daikon.properties.presentation.Widget.*;
-import static org.talend.daikon.properties.property.PropertyFactory.*;
+import static org.talend.daikon.properties.presentation.Widget.widget;
+import static org.talend.daikon.properties.property.PropertyFactory.newString;
 
 import java.util.List;
 
+import org.apache.avro.Schema;
 import org.talend.components.api.component.ISchemaListener;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.properties.ComponentPropertiesImpl;
 import org.talend.components.common.SchemaProperties;
-import org.talend.components.salesforce.runtime.SalesforceSourceOrSink;
+import org.talend.components.salesforce.runtime.ExceptionUtil;
+import org.talend.components.salesforce.runtime.SalesforceRuntimeAdapter;
 import org.talend.daikon.NamedThing;
 import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
 import org.talend.daikon.properties.property.StringProperty;
+import org.talend.daikon.runtime.RuntimeInfo;
+import org.talend.daikon.runtime.RuntimeUtil;
+import org.talend.daikon.sandbox.SandboxedInstance;
 
 public class SalesforceModuleProperties extends ComponentPropertiesImpl implements SalesforceProvideConnectionProperties {
 
@@ -78,22 +83,51 @@ public class SalesforceModuleProperties extends ComponentPropertiesImpl implemen
     // consider beforeActivate and beforeRender (change after to afterActivate)l
 
     public ValidationResult beforeModuleName() throws Exception {
-        try {
-            List<NamedThing> moduleNames = SalesforceSourceOrSink.getSchemaNames(null, connection);
-            moduleName.setPossibleNamedThingValues(moduleNames);
-        } catch (ComponentException ex) {
-            return ex.getValidationResult();
+        ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader,
+                "org.talend.components.salesforce.runtime.SalesforceSourceOrSink");
+        try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
+                classLoader)) {
+            SalesforceRuntimeAdapter ss = (SalesforceRuntimeAdapter) sandboxedInstance.getInstance();
+            ss.initialize(null, connection);
+            ValidationResult vr = ss.validate(null);
+            if (vr.getStatus() == ValidationResult.Result.OK) {
+                try {
+                    List<NamedThing> moduleNames = ss.getSchemaNames(null);
+                    moduleName.setPossibleNamedThingValues(moduleNames);
+                } catch (Exception ex) {
+                    throw new ComponentException(ExceptionUtil.exceptionToValidationResult(ex));
+                }
+            } else {
+                throw new ComponentException(vr);
+            }
+            
+            return ValidationResult.OK;
         }
-        return ValidationResult.OK;
     }
 
     public ValidationResult afterModuleName() throws Exception {
-        try {
-            main.schema.setValue(SalesforceSourceOrSink.getSchema(null, connection, moduleName.getStringValue()));
-        } catch (ComponentException ex) {
-            return ex.getValidationResult();
+        ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader,
+                "org.talend.components.salesforce.runtime.SalesforceSourceOrSink");
+        try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
+                classLoader)) {
+            SalesforceRuntimeAdapter ss = (SalesforceRuntimeAdapter) sandboxedInstance.getInstance();
+            ss.initialize(null, connection);
+            ValidationResult vr = ss.validate(null);
+            if (vr.getStatus() == ValidationResult.Result.OK) {
+                try {
+                    Schema schema = ss.getEndpointSchema(null,moduleName.getStringValue());
+                    main.schema.setValue(schema);
+                } catch (Exception ex) {
+                    throw new ComponentException(ExceptionUtil.exceptionToValidationResult(ex));
+                }
+            } else {
+                throw new ComponentException(vr);
+            }
+            
+            return ValidationResult.OK;
         }
-        return ValidationResult.OK;
     }
 
     @Override

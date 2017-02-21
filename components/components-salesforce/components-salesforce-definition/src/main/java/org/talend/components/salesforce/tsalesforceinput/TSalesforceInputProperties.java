@@ -12,20 +12,22 @@
 // ============================================================================
 package org.talend.components.salesforce.tsalesforceinput;
 
-import static org.talend.daikon.properties.property.PropertyFactory.*;
+import static org.talend.daikon.properties.property.PropertyFactory.newBoolean;
+import static org.talend.daikon.properties.property.PropertyFactory.newEnum;
+import static org.talend.daikon.properties.property.PropertyFactory.newInteger;
+import static org.talend.daikon.properties.property.PropertyFactory.newProperty;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
 
-import com.sforce.ws.ConnectionException;
 import org.apache.avro.Schema;
 import org.talend.components.api.component.PropertyPathConnector;
 import org.talend.components.api.component.runtime.DependenciesReader;
 import org.talend.components.api.component.runtime.SimpleRuntimeInfo;
 import org.talend.components.common.ComponentConstants;
 import org.talend.components.salesforce.SalesforceConnectionModuleProperties;
-import org.talend.components.salesforce.runtime.SalesforceSourceOrSink;
+import org.talend.components.salesforce.runtime.SalesforceRuntimeAdapter;
 import org.talend.daikon.properties.PresentationItem;
 import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.presentation.Form;
@@ -103,11 +105,11 @@ public class TSalesforceInputProperties extends SalesforceConnectionModuleProper
 
         try (SandboxedInstance sandboxISalesforceSourceOrSink = RuntimeUtil.createRuntimeClass(
                 new SimpleRuntimeInfo(this.getClass().getClassLoader(),
-                        DependenciesReader.computeDependenciesFilePath("org.talend.components", "components-salesforce"),
+                        DependenciesReader.computeDependenciesFilePath("org.talend.components", "components-salesforce-runtime"),
                         "org.talend.components.salesforce.runtime.SalesforceSourceOrSink"),
                 connection.getClass().getClassLoader())) {
 
-            SalesforceSourceOrSink salesforceSourceOrSink = (SalesforceSourceOrSink) sandboxISalesforceSourceOrSink.getInstance();
+            SalesforceRuntimeAdapter salesforceSourceOrSink = (SalesforceRuntimeAdapter) sandboxISalesforceSourceOrSink.getInstance();
             salesforceSourceOrSink.initialize(null, this);
 
             Schema schema = salesforceSourceOrSink.guessSchema(query.getValue());
@@ -115,8 +117,8 @@ public class TSalesforceInputProperties extends SalesforceConnectionModuleProper
             module.main.schema.setValue(schema);
             validationResult.setStatus(ValidationResult.Result.OK);
 
-        } catch (ConnectionException e1) {
-            validationResult.setStatus(ValidationResult.Result.ERROR).setMessage("Could not call Salesforce API. Schema cannot be guessed.");
+//        } catch (ConnectionException e1) {
+//            validationResult.setStatus(ValidationResult.Result.ERROR).setMessage("Could not call Salesforce API. Schema cannot be guessed.");
         } catch (IOException e2) {
             validationResult.setStatus(ValidationResult.Result.ERROR).setMessage("Could not connect to Salesforce server. Schema cannot be guessed.");
         }
