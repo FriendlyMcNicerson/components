@@ -22,6 +22,7 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.talend.components.api.component.PropertyPathConnector;
+import org.talend.components.marketo.MarketoConstants;
 import org.talend.components.marketo.tmarketoconnection.TMarketoConnectionProperties.APIMode;
 import org.talend.components.marketo.tmarketooutput.TMarketoOutputProperties.Operation;
 import org.talend.components.marketo.tmarketooutput.TMarketoOutputProperties.OperationType;
@@ -53,21 +54,6 @@ public class TMarketoOutputPropertiesTest {
     }
 
     @Test
-    public void testSetupProperties() throws Exception {
-
-    }
-
-    @Test
-    public void testSetupLayout() throws Exception {
-
-    }
-
-    @Test
-    public void testRefreshLayout() throws Exception {
-
-    }
-
-    @Test
     public void testEnums() {
         assertEquals(Operation.syncLead, Operation.valueOf("syncLead"));
         assertEquals(Operation.syncMultipleLeads, Operation.valueOf("syncMultipleLeads"));
@@ -93,23 +79,25 @@ public class TMarketoOutputPropertiesTest {
     @Test
     public void testUpdateSchemaRelated() throws Exception {
         props.operation.setValue(Operation.syncLead);
+        props.setupProperties();
+        props.mappingInput.setupProperties();
         props.afterApiMode();
         props.schemaListener.afterSchema();
-        assertEquals(TMarketoOutputProperties.getRESTSchemaForSyncLead(), props.schemaInput.schema.getValue());
+        assertEquals(MarketoConstants.getRESTOutputSchemaForSyncLead(), props.schemaInput.schema.getValue());
         props.operation.setValue(Operation.syncMultipleLeads);
         props.updateSchemaRelated();
-        assertEquals(TMarketoOutputProperties.getRESTSchemaForSyncLead(), props.schemaInput.schema.getValue());
+        assertEquals(MarketoConstants.getRESTOutputSchemaForSyncLead(), props.schemaInput.schema.getValue());
 
         props.connection.apiMode.setValue(APIMode.SOAP);
         props.afterApiMode();
         props.operation.setValue(Operation.syncLead);
         props.afterOperation();
         props.updateSchemaRelated();
-        assertEquals(TMarketoOutputProperties.getSOAPSchemaForSyncLead(), props.schemaInput.schema.getValue());
+        assertEquals(MarketoConstants.getSOAPOuputSchemaForSyncLead(), props.schemaInput.schema.getValue());
         props.operation.setValue(Operation.syncMultipleLeads);
         props.afterOperation();
         props.updateSchemaRelated();
-        assertEquals(TMarketoOutputProperties.getSOAPSchemaForSyncLead(), props.schemaInput.schema.getValue());
+        assertEquals(MarketoConstants.getSOAPOuputSchemaForSyncLead(), props.schemaInput.schema.getValue());
     }
 
 }

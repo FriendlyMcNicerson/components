@@ -18,13 +18,15 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.talend.components.marketo.tmarketoinput.TMarketoInputProperties;
 import org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties;
 import org.talend.components.marketo.tmarketooutput.TMarketoOutputProperties;
-import org.talend.daikon.properties.ValidationResult;
+import org.talend.daikon.properties.ValidationResult.Result;
 
 public class MarketoSinkTest {
 
     MarketoSink sink;
+
     @Before
     public void setUp() throws Exception {
         sink = new MarketoSink();
@@ -32,7 +34,9 @@ public class MarketoSinkTest {
 
     @Test
     public void testValidate() throws Exception {
-        assertEquals(ValidationResult.OK, sink.validate(null));
+        TMarketoInputProperties props = new TMarketoInputProperties("test");
+        sink.initialize(null, props);
+        assertEquals(Result.ERROR, sink.validate(null).getStatus());
     }
 
     @Test

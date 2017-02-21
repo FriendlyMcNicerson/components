@@ -5,13 +5,14 @@ import java.util.List;
 import java.util.Map;
 
 public class LeadChangeRecord {
-    private int id;
 
-    private int leadId;
+    private Integer id;
+
+    private Integer leadId;
 
     private Date activityDate;
 
-    private int activityTypeId;
+    private Integer activityTypeId;
 
     private String activityTypeValue;
 
@@ -19,19 +20,19 @@ public class LeadChangeRecord {
 
     private List<Map<String, String>> attributes;
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public int getId() {
+    public Integer getId() {
         return this.id;
     }
 
-    public void setLeadId(int leadId) {
+    public void setLeadId(Integer leadId) {
         this.leadId = leadId;
     }
 
-    public int getLeadId() {
+    public Integer getLeadId() {
         return this.leadId;
     }
 
@@ -43,7 +44,7 @@ public class LeadChangeRecord {
         return this.activityDate;
     }
 
-    public void setActivityTypeId(int activityTypeId) {
+    public void setActivityTypeId(Integer activityTypeId) {
         this.activityTypeId = activityTypeId;
     }
 
@@ -55,7 +56,7 @@ public class LeadChangeRecord {
         this.activityTypeValue = activityTypeValue;
     }
 
-    public int getActivityTypeId() {
+    public Integer getActivityTypeId() {
         return this.activityTypeId;
     }
 
@@ -77,10 +78,9 @@ public class LeadChangeRecord {
 
     @Override
     public String toString() {
-        return "LeadChangeRecord [id=" + id + ", leadId=" + leadId
-                + ", activityDate=" + activityDate + ", activityTypeId="
-                + activityTypeId + ", activityTypeValue=" + activityTypeValue
-                + ", fields=" + fields + ", attributes=" + attributes + "]";
+        return "LeadChangeRecord [id=" + id + ", leadId=" + leadId + ", activityDate=" + activityDate + ", activityTypeId="
+                + activityTypeId + ", activityTypeValue=" + activityTypeValue + ", fields=" + fields + ", attributes="
+                + attributes + "]";
     }
 
 }

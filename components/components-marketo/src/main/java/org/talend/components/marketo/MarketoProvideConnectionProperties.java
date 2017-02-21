@@ -10,24 +10,12 @@
 // 9 rue Pages 92150 Suresnes, France
 //
 // ============================================================================
-package org.talend.components.marketo.runtime.client;
+package org.talend.components.marketo;
 
-public abstract class MarketoClient implements MarketoClientService {
+import org.talend.components.marketo.tmarketoconnection.TMarketoConnectionProperties;
 
-    protected final String SCHEMA_DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ssZ";
+public interface MarketoProvideConnectionProperties {
 
-    protected final String DATETIME_PATTERN_FROM_PARAMS = "yyyy-MM-dd HH:mm:ss";
-
-    protected String endpoint = null;
-
-    protected String userId = null;
-
-    protected String secretKey = null;
-
-    protected Integer timeout;
-
-    protected Integer retryCount;
-
-    protected Integer retryInterval;
+    TMarketoConnectionProperties getConnectionProperties();
 
 }

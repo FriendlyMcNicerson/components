@@ -12,7 +12,8 @@
 // ============================================================================
 package org.talend.components.marketo;
 
-import static org.talend.daikon.properties.property.PropertyFactory.*;
+import static org.talend.daikon.properties.property.PropertyFactory.newBoolean;
+import static org.talend.daikon.properties.property.PropertyFactory.newInteger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,8 @@ import org.talend.components.marketo.tmarketoconnection.TMarketoConnectionProper
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.property.Property;
 
-public abstract class MarketoComponentProperties extends FixedConnectorsComponentProperties {
+public abstract class MarketoComponentProperties extends FixedConnectorsComponentProperties
+        implements MarketoProvideConnectionProperties {
 
     private static final long serialVersionUID = 5587867978797981L;
 
@@ -45,7 +47,14 @@ public abstract class MarketoComponentProperties extends FixedConnectorsComponen
 
     public ISchemaListener schemaListener;
 
-    public SchemaProperties schemaInput = new SchemaProperties("schemaInput");
+    public SchemaProperties schemaInput = new SchemaProperties("schemaInput") {
+
+        public void afterSchema() {
+            if (schemaListener != null) {
+                schemaListener.afterSchema();
+            }
+        }
+    };
 
     public SchemaProperties schemaFlow = new SchemaProperties("schemaFlow");
 
@@ -90,6 +99,7 @@ public abstract class MarketoComponentProperties extends FixedConnectorsComponen
             connection.refreshLayout(childForm);
         }
     }
+
     public void setSchemaListener(ISchemaListener schemaListener) {
         this.schemaListener = schemaListener;
     }
@@ -125,4 +135,8 @@ public abstract class MarketoComponentProperties extends FixedConnectorsComponen
         return newSchema;
     }
 
+    @Override
+    public TMarketoConnectionProperties getConnectionProperties() {
+        return connection;
+    }
 }

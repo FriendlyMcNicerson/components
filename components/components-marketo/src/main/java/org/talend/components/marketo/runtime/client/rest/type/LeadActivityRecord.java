@@ -6,20 +6,27 @@ import java.util.Map;
 
 public class LeadActivityRecord {
 
-    private Long id;
+    private Integer id;
+
     private Integer leadId;
+
     private Date activityDate;
+
     private Integer activityTypeId;
+
     private String activityTypeValue;
-    private String primaryAttributeValueId;
+
+    private Integer primaryAttributeValueId;
+
     private String primaryAttributeValue;
+
     private List<Map<String, String>> attributes;
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -55,11 +62,11 @@ public class LeadActivityRecord {
         this.activityTypeValue = activityTypeValue;
     }
 
-    public String getPrimaryAttributeValueId() {
+    public Integer getPrimaryAttributeValueId() {
         return primaryAttributeValueId;
     }
 
-    public void setPrimaryAttributeValueId(String primaryAttributeValueId) {
+    public void setPrimaryAttributeValueId(Integer primaryAttributeValueId) {
         this.primaryAttributeValueId = primaryAttributeValueId;
     }
 
@@ -81,12 +88,10 @@ public class LeadActivityRecord {
 
     @Override
     public String toString() {
-        return "LeadActivityRecord [id=" + id + ", leadId=" + leadId
-                + ", activityDate=" + activityDate + ", activityTypeId="
-                + activityTypeId + ", activityTypeValue=" + activityTypeValue
-                + ", primaryAttributeValueId=" + primaryAttributeValueId
-                + ", primaryAttributeValue=" + primaryAttributeValue
-                + ", attributes=" + attributes + "]";
+        return "LeadActivityRecord [id=" + id + ", leadId=" + leadId + ", activityDate=" + activityDate + ", activityTypeId="
+                + activityTypeId + ", activityTypeValue=" + activityTypeValue + ", primaryAttributeValueId="
+                + primaryAttributeValueId + ", primaryAttributeValue=" + primaryAttributeValue + ", attributes=" + attributes
+                + "]";
     }
 
 }

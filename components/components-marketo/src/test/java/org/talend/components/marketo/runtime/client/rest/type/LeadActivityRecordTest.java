@@ -24,16 +24,17 @@ import org.junit.Test;
 public class LeadActivityRecordTest {
 
     LeadActivityRecord r;
+
     @Before
     public void setUp() throws Exception {
         r = new LeadActivityRecord();
-        r.setId(1L);
+        r.setId(1);
         r.setLeadId(2);
         r.setActivityTypeId(3);
         r.setActivityTypeValue("value");
         r.setActivityDate(new Date());
         r.setPrimaryAttributeValue("pvalue");
-        r.setPrimaryAttributeValueId("ivalue");
+        r.setPrimaryAttributeValueId(1235);
         r.setAttributes(null);
     }
 
@@ -45,14 +46,15 @@ public class LeadActivityRecordTest {
         assertEquals("3", r.getActivityTypeId().toString());
         assertEquals("value", r.getActivityTypeValue());
         assertEquals("pvalue", r.getPrimaryAttributeValue());
-        assertEquals("ivalue", r.getPrimaryAttributeValueId());
+        assertEquals((Integer) 1235, r.getPrimaryAttributeValueId());
         assertNotNull(r.getActivityDate());
         assertNull(r.getAttributes());
     }
 
     @Test
     public void testToString() throws Exception {
-        String s = "LeadActivityRecord [id=1, leadId=2, activityDate=null, activityTypeId=3, activityTypeValue=value, primaryAttributeValueId=ivalue, primaryAttributeValue=pvalue, attributes=null]";
+        String s = "LeadActivityRecord [id=1, leadId=2, activityDate=null, activityTypeId=3, activityTypeValue=value,"
+                + " primaryAttributeValueId=1235, primaryAttributeValue=pvalue, attributes=null]";
         r.setActivityDate(null);
         assertEquals(s, r.toString());
     }

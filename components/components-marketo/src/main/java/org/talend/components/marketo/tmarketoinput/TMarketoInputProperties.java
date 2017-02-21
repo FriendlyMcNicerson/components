@@ -27,21 +27,21 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.avro.Schema;
-import org.apache.avro.SchemaBuilder;
 import org.slf4j.Logger;
 import org.talend.components.api.component.Connector;
 import org.talend.components.api.component.ISchemaListener;
 import org.talend.components.api.component.PropertyPathConnector;
 import org.talend.components.marketo.MarketoComponentProperties;
+import org.talend.components.marketo.MarketoConstants;
+import org.talend.components.marketo.MarketoProvideConnectionProperties;
 import org.talend.components.marketo.helpers.IncludeExcludeTypesTable;
 import org.talend.components.marketo.helpers.MarketoColumnMappingsTable;
 import org.talend.components.marketo.tmarketoconnection.TMarketoConnectionProperties.APIMode;
-import org.talend.daikon.avro.SchemaConstants;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
 import org.talend.daikon.properties.property.Property;
 
-public class TMarketoInputProperties extends MarketoComponentProperties {
+public class TMarketoInputProperties extends MarketoComponentProperties implements MarketoProvideConnectionProperties {
 
     static final Logger LOG = getLogger(TMarketoInputProperties.class);
 
@@ -272,7 +272,22 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
 
     public IncludeExcludeTypesTable excludeTypes = new IncludeExcludeTypesTable("excludeTypes");
 
+    /**
+     * Custom objects
+     */
+
+    // describeCustomObject(TMarketoInputProperties parameters);
+    // listCustomObjects(TMarketoInputProperties parameters);
+    // getCustomObjects(TMarketoInputProperties parameters, String offset);
+    public enum CustomObjectAction {
+        describe,
+        list,
+        get
+    }
+
     public Property<String> customObjectName = newString("customObjectName");
+
+    public Property<CustomObjectAction> customObjectAction = newEnum("customObjectAction", CustomObjectAction.class);
 
     public Property<String> customObjectNames = newString("customObjectNames");
 
@@ -310,14 +325,14 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
         leadSelectorREST.setPossibleValues(LeadSelector.LeadKeySelector, LeadSelector.StaticListSelector);
         leadSelectorREST.setValue(LeadSelector.LeadKeySelector);
 
-        schemaInput.schema.setValue(getRESTSchemaForGetLeadOrGetMultipleLeads());
+        schemaInput.schema.setValue(MarketoConstants.getRESTSchemaForGetLeadOrGetMultipleLeads());
+
         setSchemaListener(new ISchemaListener() {
 
             @Override
             public void afterSchema() {
-                LOG.debug("afterSchema");
+                LOG.warn("afterSchema");
                 updateMappings();
-                refreshLayout(getForm(Form.MAIN));
             }
         });
 
@@ -332,6 +347,8 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
         //
         // Custom Objects
         //
+        customObjectAction.setPossibleValues((Object[]) CustomObjectAction.values());
+        customObjectAction.setValue(CustomObjectAction.describe);
         customObjectName.setValue("");
         customObjectNames.setValue("");
         customObjectFilterType.setValue("");
@@ -345,6 +362,8 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
         Form mainForm = getForm(Form.MAIN);
         mainForm.addRow(operation);
         mainForm.addRow(widget(mappingInput).setWidgetType(Widget.TABLE_WIDGET_TYPE));
+        // Custom Objects
+
         // leadSelector
         mainForm.addRow(leadSelectorSOAP);
         mainForm.addRow(leadSelectorREST);
@@ -378,11 +397,14 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
     public void refreshLayout(Form form) {
         super.refreshLayout(form);
 
-        schemaInput.refreshLayout(schemaInput.getForm(Form.MAIN));
-        schemaInput.refreshLayout(schemaInput.getForm(Form.REFERENCE));
-        mappingInput.refreshLayout(mappingInput.getForm(Form.MAIN));
+        // schemaInput.refreshLayout(schemaInput.getForm(Form.MAIN));
+        // schemaInput.refreshLayout(schemaInput.getForm(Form.REFERENCE));
+        // mappingInput.refreshLayout(mappingInput.getForm(Form.MAIN));
 
         boolean useSOAP = connection.apiMode.getValue().equals(APIMode.SOAP);
+        //
+
+        //
         if (form.getName().equals(Form.MAIN)) {
             // first hide everything
             form.getWidget(leadSelectorSOAP.getName()).setVisible(false);
@@ -481,6 +503,7 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
     }
 
     public void updateMappings() {
+        LOG.warn("[updateMappings] schema : {}", schemaInput.schema.getValue().getName());
         List<String> fld = getSchemaFields();
         mappingInput.schemaColumnName.setPossibleValues(fld);
         mappingInput.schemaColumnName.setValue(fld);
@@ -488,39 +511,41 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
         for (String t : fld)
             mcn.add("");
         mappingInput.marketoColumnName.setValue(mcn);
+        mappingInput.refreshLayout(getForm(Form.MAIN));
     }
 
     public void updateSchemaRelated() {
+        LOG.warn("[updateSchemaRelated] 1. schema : {}", schemaInput.schema.getValue().getName());
         Schema s = null;
         if (connection.apiMode.getValue().equals(APIMode.SOAP)) {
             switch (operation.getValue()) {
             case getLead:
             case getMultipleLeads:
-                s = getSOAPSchemaForGetLeadOrGetMultipleLeads();
+                s = MarketoConstants.getSOAPSchemaForGetLeadOrGetMultipleLeads();
                 break;
             case getLeadActivity:
-                s = getSOAPSchemaForGetLeadActivity();
+                s = MarketoConstants.getSOAPSchemaForGetLeadActivity();
                 break;
             case getLeadChanges:
-                s = getSOAPSchemaForGetLeadChanges();
+                s = MarketoConstants.getSOAPSchemaForGetLeadChanges();
                 break;
             }
         } else {
             switch (operation.getValue()) {
             case getLead:
             case getMultipleLeads:
-                s = getRESTSchemaForGetLeadOrGetMultipleLeads();
+                s = MarketoConstants.getRESTSchemaForGetLeadOrGetMultipleLeads();
                 break;
             case getLeadActivity:
-                s = getRESTSchemaForGetLeadActivity();
+                s = MarketoConstants.getRESTSchemaForGetLeadActivity();
                 break;
             case getLeadChanges:
-                s = getRESTSchemaForGetLeadChanges();
+                s = MarketoConstants.getRESTSchemaForGetLeadChanges();
                 break;
             }
         }
         schemaInput.schema.setValue(s);
-
+        LOG.warn("[updateSchemaRelated] 2. schema : {}", schemaInput.schema.getValue().getName());
         updateMappings();
     }
 
@@ -546,100 +571,12 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
     }
 
     public void afterApiMode() {
+        LOG.warn("[input] AfterApiMode");
         afterOperation();
     }
 
-    // public ValidationResult afterFetchSchemaFromQuery() {
-    // // TODO copied from Jdbc for code pattern, remove or adapt...
-    // MarketoRuntimeInfo runtimeInfo = new MarketoRuntimeInfo(MarketoRuntimeInfo.RUNTIME_SOURCE_CLASS);
-    // try (SandboxedInstance sandboxI = RuntimeUtil.createRuntimeClass(runtimeInfo,
-    // connection.getClass().getClassLoader())) {
-    // MarketoSourceOrSinkSchemaProvider ss = (MarketoSourceOrSinkSchemaProvider) sandboxI.getInstance();
-    // ss.initialize(null, this);
-    // try {
-    // Schema schema = ss.getSchemaForParams("dummy");
-    // schemaInput.schema.setValue(schema);
-    // } catch (Exception e) {
-    // LOG.error("failed to retrieve the schema :", e);
-    // return new ValidationResult().setStatus(ValidationResult.Result.ERROR).setMessage(e.getCause().getMessage());
-    // }
-    // }
-    // return ValidationResult.OK;
-    // }
-
-    public static Schema getRESTSchemaForGetLeadOrGetMultipleLeads() {
-        return SchemaBuilder.builder().record("getLeadOrGetMultipleLeads").fields() //
-                .name("id").prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true").type().nullable().intType().noDefault() //
-                .name("email").type().nullable().stringType().noDefault() //
-                .name("firstName").type().nullable().stringType().noDefault() //
-                .name("lastName").type().nullable().stringType().noDefault() //
-                .name("createdAt").prop(SchemaConstants.TALEND_COLUMN_PATTERN, "yyyy-MM-dd'T'HH:mm:ssZ").type().nullable()
-                .stringType().noDefault() //
-                .name("updatedAt").prop(SchemaConstants.TALEND_COLUMN_PATTERN, "yyyy-MM-dd'T'HH:mm:ssZ").type().nullable()
-                .stringType().noDefault() //
-                .endRecord();
+    public void afterConnectionApiMode() {
+        LOG.warn("[input] AfterConnectionApiMode");
+        afterOperation();
     }
-
-    public static Schema getSOAPSchemaForGetLeadOrGetMultipleLeads() {
-        return SchemaBuilder.builder().record("getLeadOrGetMultipleLeads").fields() //
-                .name("Id").prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true").type().nullable().intType().noDefault() //
-                .name("Email").type().nullable().stringType().noDefault() //
-                .name("ForeignSysPersonId").type().nullable().stringType().noDefault() //
-                .name("ForeignSysType").type().nullable().stringType().noDefault() //
-                .endRecord();
-    }
-
-    public static Schema getRESTSchemaForGetLeadChanges() {
-        return SchemaBuilder.builder().record("getLeadChanges").fields() //
-                .name("id").prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true").type().nullable().longType().noDefault() //
-                .name("leadId").type().nullable().intType().noDefault() //
-                .name("activityDate").prop(SchemaConstants.TALEND_COLUMN_PATTERN, "yyyy-MM-dd'T'HH:mm:ssZ").type().nullable()
-                .stringType().noDefault() //
-                .name("activityTypeId").type().nullable().intType().noDefault() //
-                .name("activityTypeValue").type().nullable().stringType().noDefault() //
-                .name("fields").type().nullable().stringType().noDefault() //
-                .endRecord();
-    }
-
-    public static Schema getSOAPSchemaForGetLeadChanges() {
-        return SchemaBuilder.builder().record("getLeadChanges").fields() //
-                .name("Id").prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true").type().nullable().intType().noDefault() //
-                .name("ActivityDateTime").prop(SchemaConstants.TALEND_COLUMN_PATTERN, "yyyy-MM-dd'T'HH:mm:ss'.000Z'").type()
-                .nullable().stringType().noDefault() //
-                .name("ActivityType").type().nullable().stringType().noDefault() //
-                .name("MktgAssetName").type().nullable().stringType().noDefault() //
-                .name("MktPersonId").type().nullable().stringType().noDefault() //
-                .name("Campaign").type().nullable().stringType().noDefault() //
-                .endRecord();
-    }
-
-    public static Schema getRESTSchemaForGetLeadActivity() {
-        return SchemaBuilder.builder().record("getLeadActivity").fields() //
-                .name("id").prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true").type().nullable().longType().noDefault() //
-                .name("leadId").type().nullable().intType().noDefault() //
-                .name("activityDate").prop(SchemaConstants.TALEND_COLUMN_PATTERN, "yyyy-MM-dd'T'HH:mm:ssZ").type().nullable()
-                .stringType().noDefault() //
-                .name("activityTypeId").type().nullable().intType().noDefault() //
-                .name("activityTypeValue").type().nullable().stringType().noDefault() //
-                .name("primaryAttributeValueId").type().nullable().longType().noDefault() //
-                .name("primaryAttributeValue").type().nullable().stringType().noDefault() //
-                .endRecord();
-    }
-
-    public static Schema getSOAPSchemaForGetLeadActivity() {
-        return SchemaBuilder.builder().record("getLeadActivity").fields() //
-                .name("Id").prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true").type().nullable().intType().noDefault() //
-                .name("ActivityDateTime").prop(SchemaConstants.TALEND_COLUMN_PATTERN, "yyyy-MM-dd'T'HH:mm:ss'.000Z'").type()
-                .nullable().stringType().noDefault() //
-                .name("ActivityType").type().nullable().stringType().noDefault() //
-                .name("MktgAssetName").type().nullable().stringType().noDefault() //
-                .name("MktPersonId").type().nullable().stringType().noDefault() //
-                .name("Campaign").type().nullable().stringType().noDefault() //
-                .name("ForeignSysId").type().nullable().stringType().noDefault() //
-                .name("PersonName").type().nullable().stringType().noDefault() //
-                .name("OrgName").type().nullable().stringType().noDefault() //
-                .name("ForeignSysOrgId").type().nullable().stringType().noDefault() //
-                .endRecord();
-    }
-
 }

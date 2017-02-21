@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class ActivityType {
 
-    private int id;
+    private Integer id;
 
     private String name;
 
@@ -15,11 +15,11 @@ public class ActivityType {
 
     private List<Map<String, String>> attributes;
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public int getId() {
+    public Integer getId() {
         return this.id;
     }
 

@@ -12,9 +12,10 @@
 // ============================================================================
 package org.talend.components.marketo.tmarketolistoperation;
 
-import static org.junit.Assert.*;
-import static org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties.getRESTSchemaMain;
-import static org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties.getSOAPSchemaMain;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -26,6 +27,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.api.component.PropertyPathConnector;
+import org.talend.components.marketo.MarketoConstants;
 import org.talend.components.marketo.MarketoTestBase;
 import org.talend.components.marketo.tmarketoconnection.TMarketoConnectionProperties.APIMode;
 import org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties.Operation;
@@ -74,11 +76,11 @@ public class TMarketoListOperationPropertiesTest extends MarketoTestBase {
 
     @Test
     public void testAfterApiMode() throws Exception {
-        props.afterApiMode();
-        assertEquals(getRESTSchemaMain(), props.schemaInput.schema.getValue());
+        props.afterOperation();
+        assertEquals(MarketoConstants.getListOperationRESTSchema(), props.schemaInput.schema.getValue());
         props.connection.apiMode.setValue(APIMode.SOAP);
-        props.afterApiMode();
-        assertEquals(getSOAPSchemaMain(), props.schemaInput.schema.getValue());
+        props.afterOperation();
+        assertEquals(MarketoConstants.getListOperationSOAPSchema(), props.schemaInput.schema.getValue());
     }
 
     @Test
@@ -102,7 +104,7 @@ public class TMarketoListOperationPropertiesTest extends MarketoTestBase {
         assertTrue(s.getField("ERROR_MSG").schema().getType().equals(Schema.Type.STRING));
         // SOAP
         props.connection.apiMode.setValue(APIMode.SOAP);
-        props.afterApiMode();
+        props.afterOperation();
         props.updateOutputSchemas();
         mainFieldsCount = props.schemaInput.schema.getValue().getFields().size();
         s = props.schemaFlow.schema.getValue();
@@ -120,13 +122,13 @@ public class TMarketoListOperationPropertiesTest extends MarketoTestBase {
 
     @Test
     public void testGetRESTSchemaMain() throws Exception {
-        Schema s = getRESTSchemaMain();
+        Schema s = MarketoConstants.getListOperationRESTSchema();
         assertEquals(2, s.getFields().size());
     }
 
     @Test
     public void testGetSOAPSchemaMain() throws Exception {
-        Schema s = getSOAPSchemaMain();
+        Schema s = MarketoConstants.getListOperationSOAPSchema();
         assertEquals(4, s.getFields().size());
     }
 

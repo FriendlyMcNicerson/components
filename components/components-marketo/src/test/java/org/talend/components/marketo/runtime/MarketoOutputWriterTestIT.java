@@ -27,6 +27,7 @@ import org.apache.avro.generic.IndexedRecord;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.talend.components.marketo.MarketoConstants;
 import org.talend.components.marketo.tmarketoconnection.TMarketoConnectionProperties.APIMode;
 import org.talend.components.marketo.tmarketooutput.TMarketoOutputProperties;
 import org.talend.components.marketo.tmarketooutput.TMarketoOutputProperties.OperationType;
@@ -43,6 +44,7 @@ public class MarketoOutputWriterTestIT extends MarketoBaseTestIT {
         // createDatasets(TEST_NB_LEADS);
         initClient();
     }
+
     @AfterClass
     public static void teardownDatasets() throws Exception {
         cleanupDatasets();
@@ -60,7 +62,7 @@ public class MarketoOutputWriterTestIT extends MarketoBaseTestIT {
         props.schemaInput.setupLayout();
         props.setupLayout();
         props.connection.apiMode.setValue(APIMode.SOAP);
-        props.schemaInput.schema.setValue(TMarketoOutputProperties.getSOAPSchemaForSyncLead());
+        props.schemaInput.schema.setValue(MarketoConstants.getSOAPOuputSchemaForSyncLead());
         props.schemaListener.afterSchema();
 
         return props;
@@ -78,7 +80,7 @@ public class MarketoOutputWriterTestIT extends MarketoBaseTestIT {
         props.schemaInput.setupLayout();
         props.setupLayout();
         props.connection.apiMode.setValue(REST);
-        props.schemaInput.schema.setValue(TMarketoOutputProperties.getRESTSchemaForSyncLead());
+        props.schemaInput.schema.setValue(MarketoConstants.getRESTOutputSchemaForSyncLead());
         props.schemaListener.afterSchema();
 
         return props;
@@ -106,9 +108,9 @@ public class MarketoOutputWriterTestIT extends MarketoBaseTestIT {
         IndexedRecord success = successes.get(0);
         Schema s = props.schemaFlow.schema.getValue();
         assertNotNull(s);
-        assertEquals("CREATED", success.get(s.getField("Status").pos()).toString().toUpperCase());
         Integer leadId = (int) success.get(0);
         createdLeads.add(leadId);
+        assertEquals("CREATED", success.get(s.getField("Status").pos()).toString().toUpperCase());
         LOG.debug("Added leadId = {} to createdLeads {}.", leadId, createdLeads);
     }
 

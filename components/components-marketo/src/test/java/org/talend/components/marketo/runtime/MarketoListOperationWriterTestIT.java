@@ -12,10 +12,12 @@
 // ============================================================================
 package org.talend.components.marketo.runtime;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.talend.components.marketo.MarketoConstants.FIELD_STATUS;
+import static org.talend.components.marketo.MarketoConstants.FIELD_SUCCESS;
 import static org.talend.components.marketo.tmarketoconnection.TMarketoConnectionProperties.APIMode.REST;
-import static org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties.FIELD_STATUS;
-import static org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties.FIELD_SUCCESS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.talend.components.api.component.runtime.Result;
+import org.talend.components.marketo.MarketoComponentDefinition;
+import org.talend.components.marketo.MarketoConstants;
 import org.talend.components.marketo.tmarketoconnection.TMarketoConnectionProperties.APIMode;
 import org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties;
 import org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties.Operation;
@@ -46,6 +51,7 @@ public class MarketoListOperationWriterTestIT extends MarketoBaseTestIT {
     public static void setupDatasets() throws Exception {
         createDatasets(TEST_NB_LEADS);
     }
+
     @AfterClass
     public static void teardownDatasets() throws Exception {
         cleanupDatasets();
@@ -61,7 +67,7 @@ public class MarketoListOperationWriterTestIT extends MarketoBaseTestIT {
         props.connection.setupLayout();
         props.setupProperties();
         props.schemaInput.setupProperties();
-        props.schemaInput.schema.setValue(TMarketoListOperationProperties.getSOAPSchemaMain());
+        props.schemaInput.schema.setValue(MarketoConstants.getListOperationSOAPSchema());
         props.connection.setupLayout();
         props.schemaInput.setupLayout();
         props.setupLayout();
@@ -82,7 +88,7 @@ public class MarketoListOperationWriterTestIT extends MarketoBaseTestIT {
         props.connection.setupLayout();
         props.schemaInput.setupLayout();
         props.setupLayout();
-        props.schemaInput.schema.setValue(TMarketoListOperationProperties.getRESTSchemaMain());
+        props.schemaInput.schema.setValue(MarketoConstants.getListOperationRESTSchema());
         props.updateOutputSchemas();
 
         return props;
@@ -113,6 +119,7 @@ public class MarketoListOperationWriterTestIT extends MarketoBaseTestIT {
         assertEquals(1, writer.result.getTotalCount());
         assertEquals(1, writer.result.getSuccessCount());
         assertEquals(0, writer.result.getRejectCount());
+        assertEquals(1, writer.result.getApiCalls());
     }
 
     @Test
@@ -134,6 +141,7 @@ public class MarketoListOperationWriterTestIT extends MarketoBaseTestIT {
         assertEquals(1, writer.result.getTotalCount());
         assertEquals(0, writer.result.getSuccessCount());
         assertEquals(1, writer.result.getRejectCount());
+        assertEquals(1, writer.result.getApiCalls());
     }
 
     @Test
@@ -152,6 +160,7 @@ public class MarketoListOperationWriterTestIT extends MarketoBaseTestIT {
         assertEquals(1, writer.result.getTotalCount());
         assertEquals(1, writer.result.getSuccessCount());
         assertEquals(0, writer.result.getRejectCount());
+        assertEquals(1, writer.result.getApiCalls());
     }
 
     @Test
@@ -184,6 +193,7 @@ public class MarketoListOperationWriterTestIT extends MarketoBaseTestIT {
         assertEquals(1, writer.result.getTotalCount());
         assertEquals(1, writer.result.getSuccessCount());
         assertEquals(0, writer.result.getRejectCount());
+        assertEquals(1, writer.result.getApiCalls());
     }
 
     @Test
@@ -213,6 +223,7 @@ public class MarketoListOperationWriterTestIT extends MarketoBaseTestIT {
         assertEquals(1, writer.result.getTotalCount());
         assertEquals(1, writer.result.getSuccessCount());
         assertEquals(0, writer.result.getRejectCount());
+        assertEquals(1, writer.result.getApiCalls());
     }
 
     @Test
@@ -245,6 +256,7 @@ public class MarketoListOperationWriterTestIT extends MarketoBaseTestIT {
         assertEquals(1, writer.result.getTotalCount());
         assertEquals(1, writer.result.getSuccessCount());
         assertEquals(0, writer.result.getRejectCount());
+        assertEquals(1, writer.result.getApiCalls());
     }
 
     @Test
@@ -272,9 +284,12 @@ public class MarketoListOperationWriterTestIT extends MarketoBaseTestIT {
         for (IndexedRecord success : writer.getSuccessfulWrites()) {
             assertEquals("notmemberof", success.get(props.schemaFlow.schema.getValue().getField(FIELD_STATUS).pos()));
         }
-        assertEquals(1, writer.result.getTotalCount());
-        assertEquals(1, writer.result.getSuccessCount());
-        assertEquals(0, writer.result.getRejectCount());
+        Result result = writer.close();
+        LOG.debug("resultMap = {}.", result);
+        assertEquals(1, result.getTotalCount());
+        assertEquals(1, result.getSuccessCount());
+        assertEquals(0, result.getRejectCount());
+        assertEquals(1, result.toMap().get(MarketoComponentDefinition.RETURN_NB_CALL));
     }
 
     @Test

@@ -24,18 +24,23 @@ import org.talend.components.marketo.runtime.client.rest.type.LeadChangeRecord;
 public class LeadChangesResultTest {
 
     LeadChangesResult r;
+
     @Before
     public void setUp() throws Exception {
         r = new LeadChangesResult();
         r.setResult(Arrays.asList(new LeadChangeRecord()));
     }
+
     @Test
     public void testGetResult() throws Exception {
         assertNotNull(r.getResult());
     }
+
     @Test
     public void testToString() throws Exception {
-        String s = "LeadChangesResult{requestId='null', success=false, errors=null, result=[LeadChangeRecord [id=0, leadId=0, activityDate=null, activityTypeId=0, activityTypeValue=null, fields=null, attributes=null]], moreResult=false, nextPageToken=null}";
+        String s = "LeadChangesResult{requestId='null', success=false, errors=null, result=[LeadChangeRecord "
+                + "[id=null, leadId=null, activityDate=null, activityTypeId=null, activityTypeValue=null, fields=null," + " "
+                + "attributes=null]], moreResult=false, nextPageToken=null}";
         assertEquals(s, r.toString());
     }
 

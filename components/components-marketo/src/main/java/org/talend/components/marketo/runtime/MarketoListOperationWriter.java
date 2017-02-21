@@ -12,7 +12,16 @@
 // ============================================================================
 package org.talend.components.marketo.runtime;
 
-import static org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties.*;
+import static org.talend.components.marketo.MarketoConstants.FIELD_ERROR_MSG;
+import static org.talend.components.marketo.MarketoConstants.FIELD_LEAD_ID;
+import static org.talend.components.marketo.MarketoConstants.FIELD_LEAD_KEY_TYPE;
+import static org.talend.components.marketo.MarketoConstants.FIELD_LEAD_KEY_VALUE;
+import static org.talend.components.marketo.MarketoConstants.FIELD_LIST_ID;
+import static org.talend.components.marketo.MarketoConstants.FIELD_LIST_KEY_TYPE;
+import static org.talend.components.marketo.MarketoConstants.FIELD_LIST_KEY_VALUE;
+import static org.talend.components.marketo.MarketoConstants.FIELD_STATUS;
+import static org.talend.components.marketo.MarketoConstants.FIELD_SUCCESS;
+import static org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties.Operation;
 import static org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties.Operation.addTo;
 import static org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties.Operation.isMemberOf;
 
@@ -154,10 +163,11 @@ public class MarketoListOperationWriter extends MarketoWriter {
             listOpeParms.setListKeyType(record.get(inputSchema.getField(FIELD_LIST_KEY_TYPE).pos()).toString());
             listOpeParms.setListKeyValue(record.get(inputSchema.getField(FIELD_LIST_KEY_VALUE).pos()).toString());
             listOpeParms.setLeadKeyType(record.get(inputSchema.getField(FIELD_LEAD_KEY_TYPE).pos()).toString());
-            listOpeParms.setLeadKeyValue(new String[]{record.get(inputSchema.getField(FIELD_LEAD_KEY_VALUE).pos()).toString()});
+            listOpeParms
+                    .setLeadKeyValue(new String[] { record.get(inputSchema.getField(FIELD_LEAD_KEY_VALUE).pos()).toString() });
         } else {
             listOpeParms.setListId((Integer) record.get(inputSchema.getField(FIELD_LIST_ID).pos()));
-            listOpeParms.setLeadIds(new Integer[]{(Integer) record.get(inputSchema.getField(FIELD_LEAD_ID).pos())});
+            listOpeParms.setLeadIds(new Integer[] { (Integer) record.get(inputSchema.getField(FIELD_LEAD_ID).pos()) });
         }
         LOG.debug("[buildParameters] {}.", listOpeParms);
         return listOpeParms;
@@ -223,6 +233,7 @@ public class MarketoListOperationWriter extends MarketoWriter {
 
     private void handleSuccess(IndexedRecord record) {
         LOG.debug("[handleSuccess] record={}.", record);
+        successfulWrites.clear();
         if (record != null) {
             result.successCount++;
             successfulWrites.add(record);
@@ -231,6 +242,7 @@ public class MarketoListOperationWriter extends MarketoWriter {
 
     private void handleReject(IndexedRecord record, MarketoError error) {
         LOG.debug("[handleReject] record={}. Error: {}.", record, error);
+        rejectedWrites.clear();
         IndexedRecord reject = new GenericData.Record(rejectSchema);
         reject.put(rejectSchema.getField(FIELD_ERROR_MSG).pos(), error.getMessage());
         for (Schema.Field outField : reject.getSchema().getFields()) {

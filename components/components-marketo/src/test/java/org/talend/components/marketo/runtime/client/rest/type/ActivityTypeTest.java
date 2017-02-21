@@ -37,9 +37,10 @@ public class ActivityTypeTest {
         Map<String, String> pattrs = new HashMap<>();
         a.setPrimaryAttribute(pattrs);
     }
+
     @Test
     public void testGetters() throws Exception {
-        assertEquals(1, a.getId());
+        assertEquals((Integer) 1, a.getId());
         assertEquals("desc", a.getDescription());
         assertEquals("name", a.getName());
         assertEquals(0, a.getAttributes().size());

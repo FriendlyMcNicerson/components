@@ -117,7 +117,7 @@ public class MarketoClientCustomObjectsTestIT extends MarketoBaseTestIT {
     public void testDescribeFields() throws Exception {
         MarketoSource source = new MarketoSource();
         source.initialize(null, irProps);
-        MarketoRESTClient client = (MarketoRESTClient) source.getClientService();
+        MarketoRESTClient client = (MarketoRESTClient) source.getClientService(null);
         List<Field> fieldList = client.getAllLeadFields();
         for (Field f : fieldList) {
             LOG.debug("f [{}] = {} {}.", f.doc(), f, f.getObjectProps());
@@ -160,7 +160,7 @@ public class MarketoClientCustomObjectsTestIT extends MarketoBaseTestIT {
     public void testDescribeCustomObject() throws Exception {
         MarketoSource source = new MarketoSource();
         source.initialize(null, irProps);
-        MarketoRESTClient client = (MarketoRESTClient) source.getClientService();
+        MarketoRESTClient client = (MarketoRESTClient) source.getClientService(null);
         irProps.customObjectName.setValue(TEST_CO_NAME_SMARTPHONE);
         MarketoRecordResult result = client.describeCustomObject(irProps);
         assertNotNull(result.getRecords());
@@ -173,7 +173,7 @@ public class MarketoClientCustomObjectsTestIT extends MarketoBaseTestIT {
     public void testListCustomObjects() throws Exception {
         MarketoSource source = new MarketoSource();
         source.initialize(null, irProps);
-        MarketoClientServiceExtended client = (MarketoClientServiceExtended) source.getClientService();
+        MarketoClientServiceExtended client = (MarketoClientServiceExtended) source.getClientService(null);
         irProps.customObjectNames.setValue("smartphone_c,roadShow_c");
         MarketoRecordResult result = client.listCustomObjects(irProps);
         assertNotNull(result.getRecords());
@@ -188,7 +188,7 @@ public class MarketoClientCustomObjectsTestIT extends MarketoBaseTestIT {
     public void testGetCustomObjects() throws Exception {
         MarketoSource source = new MarketoSource();
         source.initialize(null, irProps);
-        MarketoRESTClient client = (MarketoRESTClient) source.getClientService();
+        MarketoRESTClient client = (MarketoRESTClient) source.getClientService(null);
         irProps.customObjectName.setValue(TEST_CO_NAME_SMARTPHONE);
         irProps.customObjectFilterType.setValue(FIELD_CO_SMARTPHONE_MODEL); // cannot search by brand, must be a dedupe
                                                                             // field.
@@ -206,7 +206,7 @@ public class MarketoClientCustomObjectsTestIT extends MarketoBaseTestIT {
     public void testGetCustomObjectsFail() throws Exception {
         MarketoSource source = new MarketoSource();
         source.initialize(null, irProps);
-        MarketoRESTClient client = (MarketoRESTClient) source.getClientService();
+        MarketoRESTClient client = (MarketoRESTClient) source.getClientService(null);
         irProps.customObjectName.setValue(TEST_CO_NAME_SMARTPHONE);
         irProps.customObjectFilterType.setValue(FIELD_CO_SMARTPHONE_BRAND); // cannot search by brand, must be a dedupe
                                                                             // field.
@@ -228,7 +228,7 @@ public class MarketoClientCustomObjectsTestIT extends MarketoBaseTestIT {
     public void testGetCustomObjectsPagination() throws Exception {
         MarketoSource source = new MarketoSource();
         source.initialize(null, irProps);
-        MarketoRESTClient client = (MarketoRESTClient) source.getClientService();
+        MarketoRESTClient client = (MarketoRESTClient) source.getClientService(null);
         irProps.customObjectName.setValue(TEST_CO_NAME_SMARTPHONE);
         irProps.batchSize.setValue(1);
         irProps.schemaInput.schema.setValue(MarketoConstants.getCustomObjectRecordSchema());
@@ -265,7 +265,7 @@ public class MarketoClientCustomObjectsTestIT extends MarketoBaseTestIT {
         }
         MarketoSource source = new MarketoSource();
         source.initialize(null, irProps);
-        MarketoRESTClient client = (MarketoRESTClient) source.getClientService();
+        MarketoRESTClient client = (MarketoRESTClient) source.getClientService(null);
         MarketoSyncResult rs = client.syncCustomObjects(oprops, records);
         return rs;
     }
@@ -307,7 +307,7 @@ public class MarketoClientCustomObjectsTestIT extends MarketoBaseTestIT {
 
         MarketoSource source = new MarketoSource();
         source.initialize(null, irProps);
-        MarketoRESTClient client = (MarketoRESTClient) source.getClientService();
+        MarketoRESTClient client = (MarketoRESTClient) source.getClientService(null);
         rs = client.deleteCustomObjects(oprops, records);
         assertTrue(rs.isSuccess());
         List<SyncStatus> changes = rs.getRecords();
@@ -338,7 +338,7 @@ public class MarketoClientCustomObjectsTestIT extends MarketoBaseTestIT {
         MarketoSource source = new MarketoSource();
         oprops.customObjectDeleteBy.setValue("dedupeFields");
         source.initialize(null, oprops);
-        MarketoRESTClient client = (MarketoRESTClient) source.getClientService();
+        MarketoRESTClient client = (MarketoRESTClient) source.getClientService(null);
         rs = client.deleteCustomObjects(oprops, records);
         assertTrue(rs.isSuccess());
         List<SyncStatus> changes = rs.getRecords();
@@ -374,7 +374,7 @@ public class MarketoClientCustomObjectsTestIT extends MarketoBaseTestIT {
         MarketoSource source = new MarketoSource();
         oprops.customObjectDeleteBy.setValue("idField");
         source.initialize(null, oprops);
-        MarketoRESTClient client = (MarketoRESTClient) source.getClientService();
+        MarketoRESTClient client = (MarketoRESTClient) source.getClientService(null);
         rs = client.deleteCustomObjects(oprops, records);
         assertTrue(rs.isSuccess());
         List<SyncStatus> changes = rs.getRecords();

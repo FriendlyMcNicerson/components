@@ -118,7 +118,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.connection.endpoint.setValue("htps://marketo.com/rest/v1");
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         fail("Shouldn't be here");
     }
 
@@ -132,7 +132,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.leadKeyValue.setValue(email);
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLead(inputProperties, null);
         LOG.debug("{}", result);
@@ -152,7 +152,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.afterOperation();
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getMultipleLeads(inputProperties, null);
         LOG.debug("{}", result);
@@ -177,7 +177,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.leadKeyValue.setValue(EMAIL_INEXISTANT);
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLead(inputProperties, null);
         List<IndexedRecord> records = result.getRecords();
@@ -195,7 +195,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.leadKeyValue.setValue(EMAIL_INEXISTANT);
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLead(inputProperties, null);
         List<IndexedRecord> records = result.getRecords();
@@ -212,7 +212,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.leadKeyValues.setValue("undx00@undx.net,undx10@undx.net,undx20@undx.net,undx30@undx.net");
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getMultipleLeads(inputProperties, null);
         LOG.debug("{}", result);
@@ -229,7 +229,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.leadKeyValues.setValue("i-dont-exist@mail.com,bad-email@dot.net");
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         MarketoRecordResult result = client.getMultipleLeads(inputProperties, null);
         LOG.debug("{}", result);
         assertTrue(result.isSuccess()); // but no leads
@@ -247,7 +247,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.listParamValue.setValue(UNDX_TEST_LIST_SMALL);
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getMultipleLeads(inputProperties, null);
         LOG.debug("{}", result);
@@ -267,7 +267,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.listParamValue.setValue(UNDX_TEST_LIST_SMALL);
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getMultipleLeads(inputProperties, null);
         int counted = result.getRecordCount();
@@ -279,7 +279,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
             counted += result.getRecordCount();
         }
         LOG.debug(result.getRecords().get(0).getSchema().toString());
-        assertEquals("int", result.getRecords().get(0).getSchema().getField("Id").schema().getTypes().get(0).getName());
+        assertEquals("long", result.getRecords().get(0).getSchema().getField("Id").schema().getTypes().get(0).getName());
         assertTrue(counted > 4);
     }
 
@@ -294,7 +294,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.listParamValue.setValue("undx_test_list******");
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getMultipleLeads(inputProperties, null);
         LOG.debug("{}", result);
@@ -316,7 +316,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.listParamValue.setValue(UNDX_TEST_LIST_SMALL_ID.toString());
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getMultipleLeads(inputProperties, null);
         LOG.debug("{}", result);
@@ -338,7 +338,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.listParamValue.setValue("-666");
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getMultipleLeads(inputProperties, null);
         LOG.debug("{}", result);
@@ -361,7 +361,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.latestUpdateDate.setValue(DATE_LATEST_UPDATE);
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         assertTrue(client.getMultipleLeads(inputProperties, null).getRecords().size() > 0);
     }
@@ -378,7 +378,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
 
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLeadActivity(inputProperties, null);
         LOG.debug("{}", result);
@@ -397,7 +397,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.leadKeyValue.setValue(EMAIL_LEAD_MANY_INFOS);
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLeadActivity(inputProperties, null);
         int totalRecords = result.getRecordCount() + result.getRemainCount();
@@ -418,13 +418,14 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.batchSize.setValue(11);
         //
         inputProperties.leadKeyValue.setValue(EMAIL_LEAD_MANY_INFOS);
+        inputProperties.setIncludeTypes.setValue(true);
         inputProperties.includeTypes.type.getValue().add(NewLead.toString());
         inputProperties.includeTypes.type.getValue().add(ChangeDataValue.toString());
         // inputProperties.includeTypes.type.getValue().add(TMarketoInputProperties.IncludeExcludeFieldsSOAP.VisitWebpage.toString());
 
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLeadActivity(inputProperties, null);
         List<IndexedRecord> activities = result.getRecords();
@@ -443,13 +444,13 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.batchSize.setValue(11);
         //
         inputProperties.leadKeyValue.setValue(EMAIL_LEAD_MANY_INFOS);
+        inputProperties.setExcludeTypes.setValue(true);
         inputProperties.excludeTypes.type.getValue().add(NewLead.toString());
         inputProperties.excludeTypes.type.getValue().add(ChangeDataValue.toString());
-        // inputProperties.includeTypes.type.getValue().add(TMarketoInputProperties.IncludeExcludeFieldsSOAP.VisitWebpage.toString());
 
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLeadActivity(inputProperties, null);
         List<IndexedRecord> activities = result.getRecords();
@@ -469,7 +470,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.latestCreateDate.setValue(DATE_LATEST_CREATE);
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLeadChanges(inputProperties, null);
         List<IndexedRecord> changes = result.getRecords();
@@ -487,7 +488,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         inputProperties.latestCreateDate.setValue(DATE_LATEST_CREATE);
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = null;
         List<IndexedRecord> changes = null;
@@ -513,12 +514,13 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         //
         inputProperties.oldestCreateDate.setValue(DATE_OLDEST_CREATE);
         inputProperties.latestCreateDate.setValue(DATE_LATEST_CREATE);
+        inputProperties.setIncludeTypes.setValue(true);
         inputProperties.includeTypes.type.getValue().add(NewLead.toString());
         inputProperties.includeTypes.type.getValue().add(ChangeDataValue.toString());
 
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLeadChanges(inputProperties, null);
         List<IndexedRecord> changes = result.getRecords();
@@ -536,12 +538,13 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         //
         inputProperties.oldestCreateDate.setValue(DATE_OLDEST_CREATE);
         inputProperties.latestCreateDate.setValue(DATE_LATEST_CREATE);
+        inputProperties.setExcludeTypes.setValue(true);
         inputProperties.excludeTypes.type.getValue().add(NewLead.toString());
         inputProperties.excludeTypes.type.getValue().add(ChangeDataValue.toString());
 
         MarketoSource source = new MarketoSource();
         source.initialize(null, inputProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLeadChanges(inputProperties, null);
         List<IndexedRecord> changes = result.getRecords();
@@ -562,7 +565,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
     public void testAddToList() throws Exception {
         MarketoSource source = new MarketoSource();
         source.initialize(null, listProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         ListOperationParameters parms = new ListOperationParameters();
         parms.setApiMode(SOAP.name());
@@ -595,7 +598,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
     public void testIsMemberOfList() throws Exception {
         MarketoSource source = new MarketoSource();
         source.initialize(null, listProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         ListOperationParameters parms = new ListOperationParameters();
         parms.setApiMode(SOAP.name());
@@ -619,7 +622,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
     public void testRemoveFromList() throws Exception {
         MarketoSource source = new MarketoSource();
         source.initialize(null, listProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         ListOperationParameters parms = new ListOperationParameters();
         parms.setApiMode(SOAP.name());
@@ -659,7 +662,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         MarketoSource source = new MarketoSource();
         outProperties.operation.setValue(TMarketoOutputProperties.Operation.syncLead);
         outProperties.afterApiMode();
-        MarketoSOAPClient client = new MarketoSOAPClient(outProperties);
+        MarketoSOAPClient client = new MarketoSOAPClient(outProperties.connection);
         IndexedRecord record = new GenericData.Record(outProperties.schemaInput.schema.getValue());
         record.put(0, 10);
         record.put(1, "undx@undx.net");
@@ -725,7 +728,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         outProperties.operation.setValue(TMarketoOutputProperties.Operation.syncLead);
         outProperties.afterApiMode();
         source.initialize(null, listProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         // test attributes
         List<Field> fields = new ArrayList<>();
         Field field = new Schema.Field("FirstName", Schema.create(Schema.Type.STRING), null, (Object) null);
@@ -756,7 +759,7 @@ public class MarketoSOAPClientTestIT extends MarketoClientTestIT {
         outProperties.operation.setValue(TMarketoOutputProperties.Operation.syncLead);
         outProperties.afterApiMode();
         source.initialize(null, listProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         // test attributes
         List<Field> fields = new ArrayList<>();
         Field field = new Schema.Field("AccountType", Schema.create(Schema.Type.STRING), null, (Object) null);

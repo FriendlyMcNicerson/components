@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -58,13 +59,13 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
 import org.slf4j.Logger;
 import org.talend.components.api.exception.ComponentException;
-import org.talend.components.marketo.MarketoComponentProperties;
 import org.talend.components.marketo.runtime.client.rest.type.SyncStatus;
 import org.talend.components.marketo.runtime.client.type.ListOperationParameters;
 import org.talend.components.marketo.runtime.client.type.MarketoError;
 import org.talend.components.marketo.runtime.client.type.MarketoException;
 import org.talend.components.marketo.runtime.client.type.MarketoRecordResult;
 import org.talend.components.marketo.runtime.client.type.MarketoSyncResult;
+import org.talend.components.marketo.tmarketoconnection.TMarketoConnectionProperties;
 import org.talend.components.marketo.tmarketoinput.TMarketoInputProperties;
 import org.talend.components.marketo.tmarketooutput.TMarketoOutputProperties;
 
@@ -108,7 +109,6 @@ import com.marketo.mktows.SuccessGetMultipleLeads;
 import com.marketo.mktows.SuccessListOperation;
 import com.marketo.mktows.SuccessSyncLead;
 import com.marketo.mktows.SuccessSyncMultipleLeads;
-import com.sun.xml.ws.fault.ServerSOAPFaultException;
 
 public class MarketoSOAPClient extends MarketoClient {
 
@@ -148,13 +148,13 @@ public class MarketoSOAPClient extends MarketoClient {
 
     private ObjectFactory objectFactory;
 
-    public MarketoSOAPClient(MarketoComponentProperties properties) throws MarketoException {
+    public MarketoSOAPClient(TMarketoConnectionProperties connection) throws MarketoException {
         try {
             LOG.debug("Marketo SOAP Client initialization.");
             objectFactory = new ObjectFactory();
-            endpoint = properties.connection.endpoint.getValue();
-            userId = properties.connection.clientAccessId.getValue();
-            secretKey = properties.connection.secretKey.getValue();
+            endpoint = connection.endpoint.getValue();
+            userId = connection.clientAccessId.getValue();
+            secretKey = connection.secretKey.getValue();
 
             URL marketoSoapEndPoint = null;
             marketoSoapEndPoint = new URL(endpoint + "?WSDL");
@@ -206,6 +206,10 @@ public class MarketoSOAPClient extends MarketoClient {
             for (Field f : schema.getFields()) {
                 // find matching marketo column name
                 String col = mappings.get(f.name());
+                if (col == null) {
+                    LOG.warn("[converLeadRecord] Couldn't find mapping for column {}.", f.name());
+                    continue;
+                }
                 if (col.equals(FIELD_ID)) {
                     record.put(f.pos(), input.getId().getValue());
                 } else if (col.equals(FIELD_EMAIL)) {
@@ -235,10 +239,15 @@ public class MarketoSOAPClient extends MarketoClient {
             for (Field f : schema.getFields()) {
                 // find matching marketo column name
                 String col = mappings.get(f.name());
+                if (col == null) {
+                    LOG.warn("[convertLeadActivityRecords] Couldn't find mapping for column {}.", f.name());
+                    continue;
+                }
                 if (col.equals(FIELD_ID)) {
                     record.put(f.pos(), input.getId());
                 } else if (col.equals(FIELD_ACTIVITY_DATE_TIME)) {
-                    record.put(f.pos(), input.getActivityDateTime());
+                    record.put(f.pos(), input.getActivityDateTime().toGregorianCalendar().getTime());
+                    //
                 } else if (col.equals(FIELD_ACTIVITY_TYPE)) {
                     record.put(f.pos(), input.getActivityType());
                 } else if (col.equals(FIELD_MKTG_ASSET_NAME)) {
@@ -277,10 +286,14 @@ public class MarketoSOAPClient extends MarketoClient {
             for (Field f : schema.getFields()) {
                 // find matching marketo column name
                 String col = mappings.get(f.name());
+                if (col == null) {
+                    LOG.warn("[convertLeadChangeRecords] Couldn't find mapping for column {}.", f.name());
+                    continue;
+                }
                 if (col.equals(FIELD_ID)) {
                     record.put(f.pos(), input.getId());
                 } else if (col.equals(FIELD_ACTIVITY_DATE_TIME)) {
-                    record.put(f.pos(), input.getActivityDateTime());
+                    record.put(f.pos(), input.getActivityDateTime().toGregorianCalendar().getTime());
                 } else if (col.equals(FIELD_ACTIVITY_TYPE)) {
                     record.put(f.pos(), input.getActivityType());
                 } else if (col.equals(FIELD_MKTG_ASSET_NAME)) {
@@ -326,12 +339,12 @@ public class MarketoSOAPClient extends MarketoClient {
         MarketoRecordResult mkto = new MarketoRecordResult();
         try {
             result = port.getLead(request, header);
-        } catch (ServerSOAPFaultException e) {
-            LOG.error("[{}] Lead not found : {}.", e.getFault().getFaultString(), e.getMessage());
+        } catch (Exception e) {
+            LOG.error("Lead not found : {}.", e.getMessage());
             mkto.setSuccess(false);
             mkto.setRecordCount(0);
             mkto.setRemainCount(0);
-            mkto.setErrors(Arrays.asList(new MarketoError(SOAP, e.getFault().getFaultString(), e.getMessage())));
+            mkto.setErrors(Arrays.asList(new MarketoError(SOAP, e.getMessage())));
         }
         long tRequest = currentTimeMillis();
 
@@ -539,16 +552,22 @@ public class MarketoSOAPClient extends MarketoClient {
         }
         // Activity filter
         ActivityTypeFilter filter = new ActivityTypeFilter();
-        ArrayOfActivityType includes = new ArrayOfActivityType();
-        ArrayOfActivityType excludes = new ArrayOfActivityType();
-        for (String a : parameters.includeTypes.type.getValue()) {
-            includes.getActivityTypes().add(fromValue(a));
+
+        if (parameters.setIncludeTypes.getValue()) {
+            ArrayOfActivityType includes = new ArrayOfActivityType();
+            for (String a : parameters.includeTypes.type.getValue()) {
+                includes.getActivityTypes().add(fromValue(a));
+            }
+            filter.setIncludeTypes(includes);
         }
-        for (String a : parameters.excludeTypes.type.getValue()) {
-            excludes.getActivityTypes().add(fromValue(a));
+        if (parameters.setExcludeTypes.getValue()) {
+            ArrayOfActivityType excludes = new ArrayOfActivityType();
+            for (String a : parameters.excludeTypes.type.getValue()) {
+                excludes.getActivityTypes().add(fromValue(a));
+            }
+            filter.setExcludeTypes(excludes);
         }
-        filter.setIncludeTypes(includes);
-        filter.setExcludeTypes(excludes);
+
         ObjectFactory objectFactory = new ObjectFactory();
         JAXBElement<ActivityTypeFilter> typeFilter = objectFactory.createParamsGetLeadActivityActivityFilter(filter);
         request.setActivityFilter(typeFilter);
@@ -654,16 +673,22 @@ public class MarketoSOAPClient extends MarketoClient {
         }
         // Activity filter
         ActivityTypeFilter filter = new ActivityTypeFilter();
-        ArrayOfActivityType includes = new ArrayOfActivityType();
-        ArrayOfActivityType excludes = new ArrayOfActivityType();
-        for (String a : parameters.includeTypes.type.getValue()) {
-            includes.getActivityTypes().add(fromValue(a));
+
+        if (parameters.setIncludeTypes.getValue()) {
+            ArrayOfActivityType includes = new ArrayOfActivityType();
+            for (String a : parameters.includeTypes.type.getValue()) {
+                includes.getActivityTypes().add(fromValue(a));
+            }
+            filter.setIncludeTypes(includes);
         }
-        for (String a : parameters.excludeTypes.type.getValue()) {
-            excludes.getActivityTypes().add(fromValue(a));
+        if (parameters.setExcludeTypes.getValue()) {
+            ArrayOfActivityType excludes = new ArrayOfActivityType();
+            for (String a : parameters.excludeTypes.type.getValue()) {
+                excludes.getActivityTypes().add(fromValue(a));
+            }
+            filter.setExcludeTypes(excludes);
         }
-        filter.setIncludeTypes(includes);
-        filter.setExcludeTypes(excludes);
+
         ObjectFactory objectFactory = new ObjectFactory();
         JAXBElement<ActivityTypeFilter> typeFilter = objectFactory.createParamsGetLeadActivityActivityFilter(filter);
         request.setActivityFilter(typeFilter);
@@ -722,7 +747,7 @@ public class MarketoSOAPClient extends MarketoClient {
             lk.setKeyType(LeadKeyRef.valueOf(parameters.getLeadKeyType()));
             lk.setKeyValue(lkv);
             leadKeys.getLeadKeies().add(lk);
-            LOG.warn("Adding leadID : {}", lkv);
+            LOG.warn("[listOperation] Adding leadID {} for {}.", lkv, operationType);
         }
         paramsListOperation.setListMemberList(leadKeys);
 
@@ -791,12 +816,12 @@ public class MarketoSOAPClient extends MarketoClient {
     public LeadRecord convertToLeadRecord(IndexedRecord record, Map<String, String> mappings) throws MarketoException {
         // first, check if a mandatory field is in the schema
         Boolean ok = Boolean.FALSE;
-        ok = record.getSchema().getField(mappings.get(FIELD_ID)) != null
-                && record.get(record.getSchema().getField(FIELD_ID).pos()) != null;
-        ok |= record.getSchema().getField(mappings.get(FIELD_EMAIL)) != null
-                && record.get(record.getSchema().getField(FIELD_EMAIL).pos()) != null;
-        ok |= record.getSchema().getField(mappings.get(FIELD_FOREIGN_SYS_PERSON_ID)) != null
-                && record.get(record.getSchema().getField(FIELD_FOREIGN_SYS_PERSON_ID).pos()) != null;
+        for (Entry<String, String> e : mappings.entrySet()) {
+            ok |= (e.getKey().equals(FIELD_ID) || e.getKey().equals(FIELD_EMAIL) || e.getKey().equals(FIELD_FOREIGN_SYS_PERSON_ID)
+                    || e.getValue().equals(FIELD_ID) || e.getValue().equals(FIELD_EMAIL)
+                    || e.getValue().equals(FIELD_FOREIGN_SYS_PERSON_ID))
+                    && record.get(record.getSchema().getField(e.getKey()).pos()) != null;
+        }
         if (!ok) {
             MarketoException err = new MarketoException("SOAP", "syncLead error: Missing mandatory field for operation.");
             LOG.error(err.toString());

@@ -12,11 +12,14 @@
 // ============================================================================
 package org.talend.components.marketo.runtime;
 
-import static org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties.*;
-import static org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties.FIELD_STATUS;
-import static org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationProperties.FIELD_SUCCESS;
+import static org.talend.components.marketo.MarketoConstants.FIELD_ERROR_MSG;
+import static org.talend.components.marketo.MarketoConstants.FIELD_LEAD_ID;
+import static org.talend.components.marketo.MarketoConstants.FIELD_STATUS;
+import static org.talend.components.marketo.MarketoConstants.FIELD_SUCCESS;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.avro.Schema;
@@ -26,6 +29,7 @@ import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.generic.IndexedRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.component.runtime.WriteOperation;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.common.runtime.GenericAvroRegistry;
@@ -49,17 +53,19 @@ public class MarketoOutputWriter extends MarketoWriter {
 
     TMarketoOutputProperties properties;
 
-    Operation operation;
+    private Operation operation;
 
-    OperationType operationType;
+    private OperationType operationType;
 
-    String lookupField;
+    private String lookupField;
 
-    Map<String, String> mappings;
+    private Map<String, String> mappings;
 
-    Boolean deDupeEnabled = Boolean.FALSE;
+    private Boolean deDupeEnabled = Boolean.FALSE;
 
-    int batchSize = 1;
+    private int batchSize = 1;
+
+    private List<IndexedRecord> recordsToProcess = new ArrayList<>();
 
     private transient static final Logger LOG = LoggerFactory.getLogger(MarketoOutputWriter.class);
 
@@ -101,9 +107,28 @@ public class MarketoOutputWriter extends MarketoWriter {
             inputSchema = ((IndexedRecord) object).getSchema();
         }
         //
-        MarketoSyncResult syncResult;
-        syncResult = client.syncLead(properties, inputRecord);
-        processResult(syncResult);
+        MarketoSyncResult syncResult = null;
+        switch (operation) {
+        case syncLead:
+            processResult(client.syncLead(properties, inputRecord));
+            break;
+        case syncMultipleLeads:
+            recordsToProcess.add(inputRecord);
+            if (recordsToProcess.size() >= batchSize) {
+                processResult(client.syncMultipleLeads(properties, recordsToProcess));
+                recordsToProcess.clear();
+            }
+            break;
+        }
+    }
+
+    @Override
+    public Result close() throws IOException {
+        if (recordsToProcess.size() > 0) {
+            processResult(client.syncMultipleLeads(properties, recordsToProcess));
+            recordsToProcess.clear();
+        }
+        return super.close();
     }
 
     public void processResult(MarketoSyncResult mktoResult) {
@@ -122,6 +147,7 @@ public class MarketoOutputWriter extends MarketoWriter {
 
     private void handleSuccess(IndexedRecord record) {
         LOG.debug("[handleSuccess] record={}.", record);
+        successfulWrites.clear();
         if (record != null) {
             result.successCount++;
             successfulWrites.add(record);
@@ -130,6 +156,7 @@ public class MarketoOutputWriter extends MarketoWriter {
 
     private void handleReject(IndexedRecord record, MarketoError error) {
         LOG.debug("[handleReject] record={}. Error: {}.", record, error);
+        rejectedWrites.clear();
         IndexedRecord reject = new GenericData.Record(rejectSchema);
         reject.put(rejectSchema.getField(FIELD_ERROR_MSG).pos(), error.getMessage());
         for (Schema.Field outField : reject.getSchema().getFields()) {

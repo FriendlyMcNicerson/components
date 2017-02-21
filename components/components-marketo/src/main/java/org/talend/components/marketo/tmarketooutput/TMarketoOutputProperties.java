@@ -25,12 +25,12 @@ import java.util.Set;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
-import org.apache.avro.SchemaBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.api.component.ISchemaListener;
 import org.talend.components.api.component.PropertyPathConnector;
 import org.talend.components.marketo.MarketoComponentProperties;
+import org.talend.components.marketo.MarketoConstants;
 import org.talend.components.marketo.helpers.MarketoColumnMappingsTable;
 import org.talend.components.marketo.tmarketoconnection.TMarketoConnectionProperties.APIMode;
 import org.talend.daikon.avro.SchemaConstants;
@@ -84,11 +84,11 @@ public class TMarketoOutputProperties extends MarketoComponentProperties {
     public Property<Boolean> deDupeEnabled = newBoolean("deDupeEnabled");
 
     public MarketoColumnMappingsTable mappingInput = new MarketoColumnMappingsTable("mappingInput");
+
     /*
      * Custom Objects
      * 
      */
-
     public enum CustomObjectSyncAction {
         createOnly,
         updateOnly,
@@ -171,9 +171,9 @@ public class TMarketoOutputProperties extends MarketoComponentProperties {
     public void refreshLayout(Form form) {
         super.refreshLayout(form);
 
-        schemaInput.refreshLayout(schemaInput.getForm(Form.MAIN));
-        schemaInput.refreshLayout(schemaInput.getForm(Form.REFERENCE));
-        mappingInput.refreshLayout(mappingInput.getForm(Form.MAIN));
+        // schemaInput.refreshLayout(schemaInput.getForm(Form.MAIN));
+        // schemaInput.refreshLayout(schemaInput.getForm(Form.REFERENCE));
+        // mappingInput.refreshLayout(mappingInput.getForm(Form.MAIN));
 
         boolean useSOAP = connection.apiMode.getValue().equals(APIMode.SOAP);
 
@@ -190,7 +190,10 @@ public class TMarketoOutputProperties extends MarketoComponentProperties {
                 form.getWidget(batchSize.getName()).setVisible(true);
             }
             //
-            if (!useSOAP) {
+            if (useSOAP) {
+                form.getWidget(mappingInput.getName()).setVisible(true);
+
+            } else {
                 form.getWidget(operationType.getName()).setVisible(true);
                 form.getWidget(lookupField.getName()).setVisible(true);
                 form.getWidget(deDupeEnabled.getName()).setVisible(true);
@@ -199,15 +202,21 @@ public class TMarketoOutputProperties extends MarketoComponentProperties {
     }
 
     public void afterApiMode() {
+        LOG.error("[TMarketoOutput] afterApiMode");
         if (connection.apiMode.getValue().equals(APIMode.SOAP)) {
-            schemaInput.schema.setValue(getSOAPSchemaForSyncLead());
+            schemaInput.schema.setValue(MarketoConstants.getSOAPOuputSchemaForSyncLead());
         } else {
-            schemaInput.schema.setValue(getRESTSchemaForSyncLead());
+            schemaInput.schema.setValue(MarketoConstants.getRESTOutputSchemaForSyncLead());
         }
         afterOperation();
     }
 
     public void afterOperation() {
+        if (connection.apiMode.getValue().equals(APIMode.SOAP)) {
+            schemaInput.schema.setValue(MarketoConstants.getSOAPOuputSchemaForSyncLead());
+        } else {
+            schemaInput.schema.setValue(MarketoConstants.getRESTOutputSchemaForSyncLead());
+        }
         updateSchemaRelated();
         refreshLayout(getForm(Form.MAIN));
     }
@@ -221,10 +230,13 @@ public class TMarketoOutputProperties extends MarketoComponentProperties {
         List<String> fld = getSchemaFields();
         mappingInput.schemaColumnName.setPossibleValues(fld);
         mappingInput.schemaColumnName.setValue(fld);
-        List<String> mcn = new ArrayList<>();
-        for (String t : fld)
-            mcn.add("");
-        mappingInput.marketoColumnName.setValue(mcn);
+        // protect mappings...
+        if (fld.size() != mappingInput.size()) {
+            List<String> mcn = new ArrayList<>();
+            for (String t : fld)
+                mcn.add("");
+            mappingInput.marketoColumnName.setValue(mcn);
+        }
     }
 
     protected void updateOutputSchemas() {
@@ -252,24 +264,6 @@ public class TMarketoOutputProperties extends MarketoComponentProperties {
         Schema rejectSchema = newSchema(inputSchema, "schemaReject", rejectFields);
         schemaFlow.schema.setValue(flowSchema);
         schemaReject.schema.setValue(rejectSchema);
-    }
-
-    public static Schema getSOAPSchemaForSyncLead() {
-        return SchemaBuilder.builder().record("syncLead").fields() //
-                .name("Id").prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true").type().nullable().intType().noDefault() //
-                .name("Email").type().nullable().stringType().noDefault() //
-                .name("ForeignSysPersonId").type().nullable().stringType().noDefault() //
-                .name("ForeignSysType").type().nullable().stringType().noDefault() //
-                .endRecord();
-    }
-
-    public static Schema getRESTSchemaForSyncLead() {
-        return SchemaBuilder.builder().record("syncLead").fields() //
-                .name("id").prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true").type().nullable().intType().noDefault() //
-                .name("email").type().nullable().stringType().noDefault() //
-                .name("firstName").type().nullable().stringType().noDefault() //
-                .name("lastName").type().nullable().stringType().noDefault() //
-                .endRecord();
     }
 
 }

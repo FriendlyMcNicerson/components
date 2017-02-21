@@ -12,6 +12,10 @@
 // ============================================================================
 package org.talend.components.marketo.tmarketolistoperation;
 
+import static org.talend.components.marketo.MarketoConstants.FIELD_ERROR_MSG;
+import static org.talend.components.marketo.MarketoConstants.FIELD_STATUS;
+import static org.talend.components.marketo.MarketoConstants.FIELD_SUCCESS;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -19,12 +23,12 @@ import java.util.Set;
 
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
-import org.apache.avro.SchemaBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.api.component.ISchemaListener;
 import org.talend.components.api.component.PropertyPathConnector;
 import org.talend.components.marketo.MarketoComponentProperties;
+import org.talend.components.marketo.MarketoConstants;
 import org.talend.components.marketo.tmarketoconnection.TMarketoConnectionProperties.APIMode;
 import org.talend.daikon.avro.SchemaConstants;
 import org.talend.daikon.properties.ValidationResult;
@@ -34,24 +38,6 @@ import org.talend.daikon.properties.property.Property;
 import org.talend.daikon.properties.property.PropertyFactory;
 
 public class TMarketoListOperationProperties extends MarketoComponentProperties {
-
-    public static final String FIELD_ERROR_MSG = "ERROR_MSG";
-
-    public static final String FIELD_STATUS = "Status";
-
-    public static final String FIELD_SUCCESS = "Success";
-
-    public static final String FIELD_LEAD_ID = "LeadId";
-
-    public static final String FIELD_LIST_ID = "ListId";
-
-    public static final String FIELD_LEAD_KEY_VALUE = "LeadKeyValue";
-
-    public static final String FIELD_LEAD_KEY_TYPE = "LeadKeyType";
-
-    public static final String FIELD_LIST_KEY_VALUE = "ListKeyValue";
-
-    public static final String FIELD_LIST_KEY_TYPE = "ListKeyType";
 
     public enum Operation {
         addTo, // adds one or more leads to a list in the Marketo DB.
@@ -85,7 +71,7 @@ public class TMarketoListOperationProperties extends MarketoComponentProperties 
     public void setupProperties() {
         super.setupProperties();
 
-        schemaInput.schema.setValue(getRESTSchemaMain());
+        schemaInput.schema.setValue(MarketoConstants.getListOperationRESTSchema());
         updateOutputSchemas();
         setSchemaListener(new ISchemaListener() {
 
@@ -118,29 +104,30 @@ public class TMarketoListOperationProperties extends MarketoComponentProperties 
     public void refreshLayout(Form form) {
         super.refreshLayout(form);
 
+        if (connection.apiMode.getValue().equals(APIMode.SOAP))
+            schemaInput.schema.setValue(MarketoConstants.getListOperationSOAPSchema());
+        else
+            schemaInput.schema.setValue(MarketoConstants.getListOperationRESTSchema());
+        if (operation.getValue().equals(Operation.isMemberOf))
+            multipleOperation.setValue(false);
+
         if (form.getName().equals(Form.MAIN)) {
             switch (operation.getValue()) {
-                case addTo :
-                case removeFrom :
-                    form.getWidget(multipleOperation.getName()).setVisible(true);
-                    break;
-                default :
-                    form.getWidget(multipleOperation.getName()).setVisible(false);
+            case addTo:
+            case removeFrom:
+                form.getWidget(multipleOperation.getName()).setVisible(true);
+                break;
+            default:
+                form.getWidget(multipleOperation.getName()).setVisible(false);
             }
         }
     }
 
     public void afterApiMode() {
-        if (connection.apiMode.getValue().equals(APIMode.SOAP))
-            schemaInput.schema.setValue(getSOAPSchemaMain());
-        else
-            schemaInput.schema.setValue(getRESTSchemaMain());
         refreshLayout(getForm(Form.MAIN));
     }
 
     public void afterOperation() {
-        if (operation.getValue().equals(Operation.isMemberOf))
-            multipleOperation.setValue(false);
         refreshLayout(getForm(Form.MAIN));
     }
 
@@ -191,41 +178,6 @@ public class TMarketoListOperationProperties extends MarketoComponentProperties 
         Schema rejectSchema = newSchema(inputSchema, "schemaReject", rejectFields);
         schemaFlow.schema.setValue(flowSchema);
         schemaReject.schema.setValue(rejectSchema);
-    }
-
-    public static Schema getRESTSchemaMain() {
-        return SchemaBuilder.builder().record("REST").fields() //
-                .name(FIELD_LIST_ID)//
-                .prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true")//
-                .prop(SchemaConstants.TALEND_IS_LOCKED, "true")//
-                .type().intType().noDefault() //
-                //
-                .name(FIELD_LEAD_ID)//
-                .prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true")//
-                .prop(SchemaConstants.TALEND_IS_LOCKED, "true")//
-                .type().intType().noDefault() //
-                .endRecord();
-    }
-
-    public static Schema getSOAPSchemaMain() {
-        return SchemaBuilder.builder().record("SOAP").fields() //
-                .name(FIELD_LIST_KEY_TYPE)//
-                .prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true")//
-                .prop(SchemaConstants.TALEND_IS_LOCKED, "true")//
-                .type().stringType().noDefault() //
-                .name(FIELD_LIST_KEY_VALUE)//
-                .prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true")//
-                .prop(SchemaConstants.TALEND_IS_LOCKED, "true")//
-                .type().stringType().noDefault() //
-                .name(FIELD_LEAD_KEY_TYPE)//
-                .prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true")//
-                .prop(SchemaConstants.TALEND_IS_LOCKED, "true")//
-                .type().stringType().noDefault() //
-                .name(FIELD_LEAD_KEY_VALUE)//
-                .prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true")//
-                .prop(SchemaConstants.TALEND_IS_LOCKED, "true")//
-                .type().stringType().noDefault() //
-                .endRecord();
     }
 
 }

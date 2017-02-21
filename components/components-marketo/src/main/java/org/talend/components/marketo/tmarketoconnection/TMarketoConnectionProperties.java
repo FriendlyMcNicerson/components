@@ -21,12 +21,13 @@ import java.util.EnumSet;
 
 import org.talend.components.api.properties.ComponentPropertiesImpl;
 import org.talend.components.api.properties.ComponentReferenceProperties;
+import org.talend.components.marketo.MarketoProvideConnectionProperties;
 import org.talend.daikon.properties.PresentationItem;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
 import org.talend.daikon.properties.property.Property;
 
-public class TMarketoConnectionProperties extends ComponentPropertiesImpl {
+public class TMarketoConnectionProperties extends ComponentPropertiesImpl implements MarketoProvideConnectionProperties {
 
     private static final long serialVersionUID = 145738798798151L;
 
@@ -134,6 +135,23 @@ public class TMarketoConnectionProperties extends ComponentPropertiesImpl {
         }
     }
 
+    public void afterReferencedComponent() {
+        refreshLayout(getForm(Form.MAIN));
+        refreshLayout(getForm(Form.ADVANCED));
+        refreshLayout(getForm(Form.REFERENCE));
+    }
+
+    public void afterApiMode() {
+        refreshLayout(getForm(Form.MAIN));
+        refreshLayout(getForm(Form.ADVANCED));
+        refreshLayout(getForm(Form.REFERENCE));
+    }
+
+    @Override
+    public TMarketoConnectionProperties getConnectionProperties() {
+        return this;
+    }
+
     public String getReferencedComponentId() {
         return referencedComponent.componentInstanceId.getStringValue();
     }
@@ -144,12 +162,6 @@ public class TMarketoConnectionProperties extends ComponentPropertiesImpl {
             return refProps;
         }
         return null;
-    }
-
-    public void afterReferencedComponent() {
-        refreshLayout(getForm(Form.MAIN));
-        refreshLayout(getForm(Form.ADVANCED));
-        refreshLayout(getForm(Form.REFERENCE));
     }
 
 }

@@ -135,7 +135,7 @@ public class MarketoBaseTestIT {
 
         MarketoSource source = new MarketoSource();
         source.initialize(null, p);
-        datasetsClient = (MarketoRESTClient) source.getClientService();
+        datasetsClient = (MarketoRESTClient) source.getClientService(null);
         return p;
     }
 

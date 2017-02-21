@@ -16,9 +16,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.talend.components.marketo.MarketoRuntimeInfo.MAVEN_GROUP_ID;
-import static org.talend.components.marketo.MarketoRuntimeInfo.MAVEN_RUNTIME_ARTIFACT_ID;
-import static org.talend.components.marketo.MarketoRuntimeInfo.MAVEN_RUNTIME_PATH;
+import static org.talend.components.marketo.MarketoComponentDefinition.MAVEN_ARTIFACT_ID;
+import static org.talend.components.marketo.MarketoComponentDefinition.MAVEN_GROUP_ID;
+import static org.talend.components.marketo.MarketoComponentDefinition.MAVEN_PATH;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -87,7 +87,8 @@ public class MarketoRuntimeInfoTest {
 
     @Test
     public void testSandbox() throws Exception {
-        MarketoRuntimeInfo runtimeInfo = new MarketoRuntimeInfo(MarketoRuntimeInfo.RUNTIME_SOURCE_CLASS);
+        RuntimeInfo runtimeInfo = MarketoComponentDefinition.getCommonRuntimeInfo(this.getClass().getClassLoader(),
+                MarketoComponentDefinition.RUNTIME_SOURCE_CLASS);
         SandboxedInstance sandbox = RuntimeUtil.createRuntimeClass(runtimeInfo, getClass().getClassLoader());
         MarketoSourceOrSinkSchemaProvider ss = (MarketoSourceOrSinkSchemaProvider) sandbox.getInstance();
         ss.initialize(null, new TMarketoInputProperties(""));
@@ -103,63 +104,103 @@ public class MarketoRuntimeInfoTest {
                         new URL("mvn:com.fasterxml.jackson.core/jackson-core/2.5.3/jar"), //
                         new URL("mvn:com.fasterxml.jackson.core/jackson-databind/2.5.3/jar"), //
                         new URL("mvn:com.google.code.gson/gson/2.8.0/jar"), //
-                        new URL("mvn:com.sun.org.apache.xml.internal/resolver/20050927/jar"), //
-                        new URL("mvn:com.sun.xml.bind/jaxb-core/2.2.10-b140802.1033/jar"), //
-                        new URL("mvn:com.sun.xml.bind/jaxb-impl/2.2.10-b140802.1033/jar"), //
-                        new URL("mvn:com.sun.xml.fastinfoset/FastInfoset/1.2.13/jar"), //
-                        new URL("mvn:com.sun.xml.messaging.saaj/saaj-impl/1.3.25/jar"), //
-                        new URL("mvn:com.sun.xml.stream.buffer/streambuffer/1.5.3/jar"), //
-                        new URL("mvn:com.sun.xml.ws/jaxws-rt/2.2.10/jar"), //
-                        new URL("mvn:com.sun.xml.ws/policy/2.4/jar"), //
                         new URL("mvn:com.thoughtworks.paranamer/paranamer/2.7/jar"), //
-                        new URL("mvn:commons-codec/commons-codec/1.8/jar"), //
-                        new URL("mvn:javax.annotation/javax.annotation-api/1.2/jar"), //
+                        new URL("mvn:commons-codec/commons-codec/1.6/jar"), //
                         new URL("mvn:javax.inject/javax.inject/1/jar"), //
-                        new URL("mvn:javax.jws/jsr181-api/1.0-MR1/jar"), //
                         new URL("mvn:javax.servlet/javax.servlet-api/3.1.0/jar"), //
-                        new URL("mvn:javax.ws.rs/javax.ws.rs-api/2.0.1/jar"), //
-                        new URL("mvn:javax.xml.bind/jaxb-api/2.2.12-b140109.1041/jar"), //
-                        new URL("mvn:javax.xml.soap/javax.xml.soap-api/1.3.7/jar"), //
-                        new URL("mvn:javax.xml.ws/jaxws-api/2.2.11/jar"), //
                         new URL("mvn:joda-time/joda-time/2.8.2/jar"), //
                         new URL("mvn:net.sourceforge.javacsv/javacsv/2.0/jar"), //
                         new URL("mvn:org.apache.avro/avro/1.8.1/jar"), //
                         new URL("mvn:org.apache.commons/commons-compress/1.8.1/jar"), //
                         new URL("mvn:org.apache.commons/commons-lang3/3.4/jar"), //
-                        new URL("mvn:org.apache.cxf/cxf-core/3.1.9/jar"), //
-                        new URL("mvn:org.apache.cxf/cxf-rt-frontend-jaxrs/3.1.9/jar"), //
-                        new URL("mvn:org.apache.cxf/cxf-rt-rs-client/3.1.9/jar"), //
-                        new URL("mvn:org.apache.cxf/cxf-rt-transports-http/3.1.9/jar"), //
-                        new URL("mvn:org.apache.ws.xmlschema/xmlschema-core/2.2.1/jar"), //
                         new URL("mvn:org.codehaus.jackson/jackson-core-asl/1.9.13/jar"), //
                         new URL("mvn:org.codehaus.jackson/jackson-mapper-asl/1.9.13/jar"), //
-                        new URL("mvn:org.codehaus.woodstox/stax2-api/3.1.1/jar"), //
-                        new URL("mvn:org.codehaus.woodstox/woodstox-core-asl/4.2.0/jar"), //
-                        new URL("mvn:org.glassfish.external/management-api/3.0.0-b012/jar"), //
-                        new URL("mvn:org.glassfish.gmbal/gmbal-api-only/3.1.0-b001/jar"), //
-                        new URL("mvn:org.glassfish.ha/ha-api/3.1.9/jar"), //
-                        new URL("mvn:org.jvnet.mimepull/mimepull/1.9.4/jar"), //
-                        new URL("mvn:org.jvnet.staxex/stax-ex/1.7.7/jar"), //
                         new URL("mvn:org.slf4j/slf4j-api/1.7.12/jar"), //
                         new URL("mvn:org.talend.components/components-api/0.18.0-SNAPSHOT/jar"), //
                         new URL("mvn:org.talend.components/components-common/0.18.0-SNAPSHOT/jar"), //
-                        new URL("mvn:org.talend.components/marketo-definition/0.18.0-SNAPSHOT/jar"), //
-                        new URL("mvn:org.talend.components/marketo-runtime/0.18.0-SNAPSHOT/jar"), //
+                        new URL("mvn:org.talend.components/components-marketo/0.18.0-SNAPSHOT/jar"), //
                         new URL("mvn:org.talend.daikon/daikon/0.16.0-SNAPSHOT/jar"), //
                         new URL("mvn:org.talend.libraries/marketo-soap-sdk/2.7/jar"), //
                         new URL("mvn:org.tukaani/xz/1.5/jar"), //
                         new URL("mvn:org.xerial.snappy/snappy-java/1.1.1.3/jar") //
+                //
+                // new URL("mvn:biz.aQute.bnd/annotation/2.4.0/jar"), //
+                // new URL("mvn:com.cedarsoftware/json-io/4.5.0/jar"), //
+                // new URL("mvn:com.fasterxml.jackson.core/jackson-annotations/2.5.3/jar"), //
+                // new URL("mvn:com.fasterxml.jackson.core/jackson-core/2.5.3/jar"), //
+                // new URL("mvn:com.fasterxml.jackson.core/jackson-databind/2.5.3/jar"), //
+                // new URL("mvn:com.google.code.gson/gson/2.8.0/jar"), //
+                // new URL("mvn:com.sun.org.apache.xml.internal/resolver/20050927/jar"), //
+                // new URL("mvn:com.sun.xml.bind/jaxb-core/2.2.11/jar"), //
+                // new URL("mvn:javax.cache/cache-api/1.0.0/jar"), //
+                // new URL("mvn:com.sun.xml.bind/jaxb-impl/2.2.11/jar"), //
+                // new URL("mvn:com.sun.xml.fastinfoset/FastInfoset/1.2.13/jar"), //
+                // new URL("mvn:com.sun.xml.messaging.saaj/saaj-impl/1.3.25/jar"), //
+                // new URL("mvn:com.sun.xml.stream.buffer/streambuffer/1.5.3/jar"), //
+                // new URL("mvn:com.sun.xml.ws/jaxws-rt/2.2.10/jar"), //
+                // new URL("mvn:com.sun.xml.ws/policy/2.4/jar"), //
+                // new URL("mvn:com.thoughtworks.paranamer/paranamer/2.7/jar"), //
+                // new URL("mvn:commons-codec/commons-codec/1.8/jar"), //
+                // new URL("mvn:javax.annotation/javax.annotation-api/1.2/jar"), //
+                // new URL("mvn:javax.cache/cache-api/1.0.0/jar"), //
+                // new URL("mvn:javax.inject/javax.inject/1/jar"), //
+                // new URL("mvn:javax.jws/jsr181-api/1.0-MR1/jar"), //
+                // new URL("mvn:javax.servlet/javax.servlet-api/3.1.0/jar"), //
+                // new URL("mvn:javax.ws.rs/javax.ws.rs-api/2.0.1/jar"), //
+                // new URL("mvn:javax.xml.bind/jaxb-api/2.2.12-b140109.1041/jar"), //
+                // new URL("mvn:javax.xml.soap/javax.xml.soap-api/1.3.7/jar"), //
+                // new URL("mvn:javax.xml.ws/jaxws-api/2.2.11/jar"), //
+                // new URL("mvn:joda-time/joda-time/2.8.2/jar"), //
+                // new URL("mvn:net.sourceforge.javacsv/javacsv/2.0/jar"), //
+                // new URL("mvn:org.apache.avro/avro/1.8.1/jar"), //
+                // new URL("mvn:org.apache.commons/commons-compress/1.8.1/jar"), //
+                // new URL("mvn:org.apache.commons/commons-lang3/3.4/jar"), //
+                // new URL("mvn:org.apache.cxf/cxf-core/3.1.9/jar"), //
+                // new URL("mvn:org.apache.cxf/cxf-rt-bindings-soap/3.1.9/jar"), //
+                // new URL("mvn:org.apache.cxf/cxf-rt-bindings-xml/3.1.9/jar"), //
+                // new URL("mvn:org.apache.cxf/cxf-rt-databinding-jaxb/3.1.9/jar"), //
+                // new URL("mvn:org.apache.cxf/cxf-rt-frontend-jaxrs/3.1.9/jar"), //
+                // new URL("mvn:org.apache.cxf/cxf-rt-frontend-jaxws/3.1.9/jar"), //
+                // new URL("mvn:org.apache.cxf/cxf-rt-frontend-simple/3.1.9/jar"), //
+                // new URL("mvn:org.apache.cxf/cxf-rt-rs-client/3.1.9/jar"), //
+                // new URL("mvn:org.apache.cxf/cxf-rt-transports-http/3.1.9/jar"), //
+                // new URL("mvn:org.apache.cxf/cxf-rt-ws-addr/3.1.9/jar"), //
+                // new URL("mvn:org.apache.cxf/cxf-rt-ws-policy/3.1.9/jar"), //
+                // new URL("mvn:org.apache.cxf/cxf-rt-wsdl/3.1.9/jar"), //
+                // new URL("mvn:org.apache.neethi/neethi/3.0.3/jar"), //
+                // new URL("mvn:org.apache.ws.xmlschema/xmlschema-core/2.2.1/jar"), //
+                // new URL("mvn:org.codehaus.jackson/jackson-core-asl/1.9.13/jar"), //
+                // new URL("mvn:org.codehaus.jackson/jackson-mapper-asl/1.9.13/jar"), //
+                // new URL("mvn:org.codehaus.woodstox/stax2-api/3.1.4/jar"), //
+                // new URL("mvn:org.codehaus.woodstox/woodstox-core-asl/4.4.1/jar"), //
+                // new URL("mvn:org.glassfish.external/management-api/3.0.0-b012/jar"), //
+                // new URL("mvn:org.glassfish.gmbal/gmbal-api-only/3.1.0-b001/jar"), //
+                // new URL("mvn:org.glassfish.ha/ha-api/3.1.9/jar"), //
+                // new URL("mvn:org.jvnet.mimepull/mimepull/1.9.4/jar"), //
+                // new URL("mvn:org.jvnet.staxex/stax-ex/1.7.7/jar"), //
+                // new URL("mvn:org.ow2.asm/asm/5.0.4/jar"), //
+                // new URL("mvn:org.slf4j/slf4j-api/1.7.12/jar"), //
+                // new URL("mvn:org.talend.components/components-api/0.18.0-SNAPSHOT/jar"), //
+                // new URL("mvn:org.talend.components/components-common/0.18.0-SNAPSHOT/jar"), //
+                // new URL("mvn:org.talend.components/components-marketo/0.18.0-SNAPSHOT/jar"), //
+                // new URL("mvn:org.talend.daikon/daikon/0.16.0-SNAPSHOT/jar"), //
+                // new URL("mvn:org.talend.libraries/marketo-soap-sdk/2.7/jar"), //
+                // new URL("mvn:org.tukaani/xz/1.5/jar"), //
+                // new URL("mvn:org.xerial.snappy/snappy-java/1.1.1.3/jar"), //
+                // new URL("mvn:wsdl4j/wsdl4j/1.6.3/jar"), //
+                // new URL("mvn:xml-resolver/xml-resolver/1.2/jar") //
                 )//
         );
     }
+
     @Test
     public void testGetMavenUrlDependencies() throws IOException {
         MavenResolver mavenResolver = MavenResolvers.createMavenResolver(null, "foo");
-        File jarWithDeps = mavenResolver.resolve(MAVEN_RUNTIME_PATH);
+        File jarWithDeps = mavenResolver.resolve(MAVEN_PATH);
         // the artifact id used to compute the file path is different from the actual artifact ID. I don't know why but
         // this does not matter.
         JarRuntimeInfo jarRuntimeInfo = new JarRuntimeInfo(jarWithDeps.toURI().toURL(),
-                DependenciesReader.computeDependenciesFilePath(MAVEN_GROUP_ID, MAVEN_RUNTIME_ARTIFACT_ID), null);
+                DependenciesReader.computeDependenciesFilePath(MAVEN_GROUP_ID, MAVEN_ARTIFACT_ID), null);
         List<URL> mavenUrlDependencies = jarRuntimeInfo.getMavenUrlDependencies();
         checkFullExampleDependencies(mavenUrlDependencies);
     }
@@ -167,10 +208,10 @@ public class MarketoRuntimeInfoTest {
     @Test
     public void testExtracDependencyFromStream() throws IOException {
         MavenResolver mavenResolver = MavenResolvers.createMavenResolver(null, "foo");
-        File jarWithDeps = mavenResolver.resolve(MAVEN_RUNTIME_PATH + "/0.18.0-SNAPSHOT");
+        File jarWithDeps = mavenResolver.resolve(MAVEN_PATH + "/0.18.0-SNAPSHOT");
         try (JarInputStream jis = new JarInputStream(new FileInputStream(jarWithDeps))) {
             List<URL> dependencyFromStream = extractDependencyFromStream(new DependenciesReader(null),
-                    DependenciesReader.computeDependenciesFilePath(MAVEN_GROUP_ID, MAVEN_RUNTIME_ARTIFACT_ID), jis);
+                    DependenciesReader.computeDependenciesFilePath(MAVEN_GROUP_ID, MAVEN_ARTIFACT_ID), jis);
             checkFullExampleDependencies(dependencyFromStream);
         }
     }
@@ -185,6 +226,7 @@ public class MarketoRuntimeInfoTest {
                 List<URL> result = new ArrayList<>(dependencies.size());
                 for (String urlString : dependencies) {
                     result.add(new URL(urlString));
+                    // System.out.println("new URL(\"" + urlString + "\"),//");
                 }
                 return result;
             }

@@ -44,6 +44,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.talend.components.marketo.MarketoConstants;
 import org.talend.components.marketo.runtime.MarketoSource;
 import org.talend.components.marketo.runtime.client.rest.type.SyncStatus;
 import org.talend.components.marketo.runtime.client.type.ListOperationParameters;
@@ -121,7 +122,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
     public void testIsAccessTokenExpired() throws Exception {
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         assertFalse(((MarketoRESTClient) client).isAccessTokenExpired(null));
         MarketoError err = new MarketoError("REST", "200", "dfddf");
         assertFalse(((MarketoRESTClient) client).isAccessTokenExpired(Arrays.asList(err)));
@@ -134,7 +135,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         iprops.connection.endpoint.setValue("htps://marketo.com/rest/v1");
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         fail("Shouldn't be here");
     }
 
@@ -143,7 +144,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         iprops.connection.endpoint.setValue("htps:marketo.comrestv1");
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         fail("Shouldn't be here");
     }
     /*
@@ -162,7 +163,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         iprops.leadKeyValue.setValue(email);
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         assertTrue(((MarketoRESTClient) client).isAvailable());
         //
         MarketoRecordResult result = client.getLead(iprops, null);
@@ -183,7 +184,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         iprops.leadKeyValue.setValue(COMMON_LINKEDIN_ID.toString());
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLead(iprops, null);
         LOG.debug("{}", result);
@@ -208,7 +209,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         iprops.leadKeyValue.setValue(EMAIL_INEXISTANT);
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLead(iprops, null);
         LOG.debug("{}", result);
@@ -227,7 +228,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
         MarketoClientService client = null;
-        client = source.getClientService();
+        client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLead(iprops, null);
         LOG.debug("{}", result);
@@ -244,7 +245,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         iprops.leadKeyValue.setValue(email);
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLead(iprops, null);
         LOG.debug("{}", result);
@@ -253,7 +254,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         IndexedRecord record = records.get(0);
         assertNotNull(record);
         Schema s = record.getSchema();
-        assertEquals(s, TMarketoInputProperties.getRESTSchemaForGetLeadOrGetMultipleLeads());
+        assertEquals(s, MarketoConstants.getRESTSchemaForGetLeadOrGetMultipleLeads());
         LOG.debug("record = {}.", record);
         assertEquals("int", s.getField("id").schema().getTypes().get(0).getName());
         assertEquals("string", s.getField("email").schema().getTypes().get(0).getName());
@@ -276,7 +277,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         iprops.leadKeyValues.setValue("undx00@undx.net,undx10@undx.net,undx20@undx.net,undx30@undx.net");
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getMultipleLeads(iprops, null);
         LOG.debug("{}", result);
@@ -293,7 +294,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         iprops.leadKeyValues.setValue("i-dont-exist@mail.com,bad-email@dot.net");
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         MarketoRecordResult result = client.getMultipleLeads(iprops, null);
         LOG.debug("{}", result);
         assertTrue(result.isSuccess()); // but no leads
@@ -311,7 +312,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         iprops.listParamValue.setValue(UNDX_TEST_LIST_SMALL);
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getMultipleLeads(iprops, null);
         LOG.debug("{}", result);
@@ -331,7 +332,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         iprops.listParamValue.setValue(UNDX_TEST_LIST_SMALL);
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getMultipleLeads(iprops, null);
         int counted = result.getRecordCount();
@@ -358,7 +359,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         iprops.listParamValue.setValue("undx_test_list******");
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getMultipleLeads(iprops, null);
         LOG.debug("{}", result);
@@ -380,7 +381,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         iprops.listParamValue.setValue(UNDX_TEST_LIST_SMALL_ID.toString());
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getMultipleLeads(iprops, null);
         LOG.debug("{}", result);
@@ -402,7 +403,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         iprops.listParamValue.setValue("-666");
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getMultipleLeads(iprops, null);
         LOG.debug("{}", result);
@@ -428,7 +429,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         //
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLeadActivity(iprops, null);
         LOG.debug("{}", result);
@@ -440,12 +441,12 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
     public void testGetLeadActivityPagination() throws Exception {
         iprops.operation.setValue(getLeadActivity);
         iprops.afterOperation();
-        iprops.batchSize.setValue(10);
-        iprops.sinceDateTime.setValue(DATE_OLDEST_CREATE);
+        iprops.batchSize.setValue(100);
+        iprops.sinceDateTime.setValue(DATE_LATEST_UPDATE);
         //
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLeadActivity(iprops, null);
         int counted = result.getRecordCount();
@@ -467,7 +468,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         //
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLeadActivity(iprops, null);
         LOG.debug("{}", result);
@@ -490,7 +491,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         //
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLeadActivity(iprops, null);
         LOG.debug("{}", result);
@@ -516,7 +517,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         //
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLeadChanges(iprops, null);
         LOG.debug("{}", result);
@@ -528,13 +529,13 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
     @Test
     public void testGetLeadsChangesPagination() throws Exception {
         iprops.afterOperation();
-        iprops.batchSize.setValue(50);
+        iprops.batchSize.setValue(100);
         iprops.sinceDateTime.setValue(DATE_OLDEST_CREATE);
         iprops.fieldList.setValue("id,email,firstName,lastName,company");
         //
         MarketoSource source = new MarketoSource();
         source.initialize(null, iprops);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         MarketoRecordResult result = client.getLeadChanges(iprops, null);
         LOG.debug("{}", result);
@@ -560,7 +561,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
     public void testAddToList() throws Exception {
         MarketoSource source = new MarketoSource();
         source.initialize(null, listProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         ListOperationParameters parms = new ListOperationParameters();
         parms.setApiMode(APIMode.REST.name());
@@ -594,7 +595,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
     public void testIsMemberOfList() throws Exception {
         MarketoSource source = new MarketoSource();
         source.initialize(null, listProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         ListOperationParameters parms = new ListOperationParameters();
         parms.setApiMode(APIMode.REST.name());
@@ -617,7 +618,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
     public void testRemoveFromList() throws Exception {
         MarketoSource source = new MarketoSource();
         source.initialize(null, listProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         ListOperationParameters parms = new ListOperationParameters();
         parms.setApiMode(APIMode.REST.name());
@@ -663,7 +664,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
         outProperties.updateSchemaRelated();
         MarketoSource source = new MarketoSource();
         source.initialize(null, outProperties);
-        MarketoClientService client = source.getClientService();
+        MarketoClientService client = source.getClientService(null);
         //
         // test attributes
         List<Field> fields = new ArrayList<>();
@@ -700,7 +701,7 @@ public class MarketoRESTClientTestIT extends MarketoClientTestIT {
     public void testDeleteLeads() throws Exception {
         MarketoSource source = new MarketoSource();
         source.initialize(null, outProperties);
-        MarketoRESTClient client = (MarketoRESTClient) source.getClientService();
+        MarketoRESTClient client = (MarketoRESTClient) source.getClientService(null);
         //
         Integer[] ids = { 0, 1, 2, 2 };
         MarketoSyncResult result = client.deleteLeads(ids);

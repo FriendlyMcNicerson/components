@@ -18,24 +18,9 @@
             <version>2.7</version>
         </dependency>
         <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.8</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.ws</groupId>
-            <artifactId>jaxws-rt</artifactId>
-            <version>2.2.10</version>
-        </dependency>
-        <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.8.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-rs-client</artifactId>
-            <version>3.1.9</version>
         </dependency>
         <!-- -->
         <dependency>
@@ -163,6 +148,7 @@
                             <instructions>
                                 <Bundle-SymbolicName>org.talend.components.marketo</Bundle-SymbolicName>
                                 <Service-Component>*</Service-Component>
+                                <Import-Package>*</Import-Package>
                                 <Embed-Dependency>*;scope=compile|runtime;inline=false;artifactId=!components*
                                 </Embed-Dependency>
                                 <Include-Resource>

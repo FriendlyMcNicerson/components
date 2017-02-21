@@ -13,7 +13,11 @@
 package org.talend.components.marketo.runtime.client;
 
 import static java.util.Collections.emptyList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,15 +25,15 @@ import java.util.Arrays;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.generic.IndexedRecord;
 import org.junit.Test;
+import org.talend.components.marketo.MarketoConstants;
 import org.talend.components.marketo.runtime.client.type.MarketoError;
 import org.talend.components.marketo.runtime.client.type.MarketoRecordResult;
-import org.talend.components.marketo.tmarketoinput.TMarketoInputProperties;
 
 public class MarketoResultTest {
 
     @Test
     public void testToString() throws Exception {
-        IndexedRecord ir = new Record(TMarketoInputProperties.getRESTSchemaForGetLeadOrGetMultipleLeads());
+        IndexedRecord ir = new Record(MarketoConstants.getRESTSchemaForGetLeadOrGetMultipleLeads());
 
         result = new MarketoRecordResult(true, "POS", 0, 0, Arrays.asList(ir));
         String s = "MarketoRecordResult{requestId='', success=true, errors=null, recordCount=0, remainCount=0, "

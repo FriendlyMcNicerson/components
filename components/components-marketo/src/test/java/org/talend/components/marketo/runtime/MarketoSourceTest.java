@@ -15,10 +15,11 @@ package org.talend.components.marketo.runtime;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.talend.daikon.properties.ValidationResult.OK;
+import org.talend.components.marketo.tmarketoinput.TMarketoInputProperties;
+import org.talend.daikon.properties.ValidationResult;
 
 public class MarketoSourceTest {
 
@@ -45,13 +46,10 @@ public class MarketoSourceTest {
     }
 
     @Test
-    public void createReader() throws Exception {
-
-    }
-
-    @Test
     public void testValidate() throws Exception {
-        assertEquals(OK, source.validate(null));
+        TMarketoInputProperties props = new TMarketoInputProperties("test");
+        source.initialize(null, props);
+        assertEquals(ValidationResult.Result.ERROR, source.validate(null).getStatus());
     }
 
 }

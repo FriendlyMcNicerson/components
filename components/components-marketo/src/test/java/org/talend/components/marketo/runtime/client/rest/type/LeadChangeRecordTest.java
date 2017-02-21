@@ -39,9 +39,9 @@ public class LeadChangeRecordTest {
 
     @Test
     public void testGetters() throws Exception {
-        assertEquals(1, r.getId());
-        assertEquals(2, r.getLeadId());
-        assertEquals(3, r.getActivityTypeId());
+        assertEquals((Integer) 1, r.getId());
+        assertEquals((Integer) 2, r.getLeadId());
+        assertEquals((Integer) 3, r.getActivityTypeId());
         assertNotNull(r.getActivityDate());
         assertEquals("value", r.getActivityTypeValue());
         assertNull(r.getFields());

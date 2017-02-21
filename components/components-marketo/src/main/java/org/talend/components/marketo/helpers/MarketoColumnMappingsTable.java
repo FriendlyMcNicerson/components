@@ -72,4 +72,10 @@ public class MarketoColumnMappingsTable extends ComponentPropertiesImpl {
         return result;
     }
 
+    public int size() {
+        if (marketoColumnName.getValue() == null)
+            return 0;
+        return marketoColumnName.getValue().size();
+    }
+
 }

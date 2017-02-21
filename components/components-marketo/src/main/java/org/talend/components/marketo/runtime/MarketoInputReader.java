@@ -58,7 +58,7 @@ public class MarketoInputReader extends AbstractBoundedReader<IndexedRecord> {
     @Override
     public boolean start() throws IOException {
         Boolean startable = false;
-        client = source.getClientService();
+        client = source.getClientService(null);
         switch (properties.operation.getValue()) {
             case getLead :
                 mktoResult = client.getLead(properties, null);

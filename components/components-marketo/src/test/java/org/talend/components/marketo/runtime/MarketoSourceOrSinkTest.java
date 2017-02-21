@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.talend.components.marketo.tmarketoconnection.TMarketoConnectionProperties.APIMode;
 import org.talend.components.marketo.tmarketoinput.TMarketoInputProperties;
 import org.talend.daikon.properties.ValidationResult;
+import org.talend.daikon.properties.ValidationResult.Result;
 
 public class MarketoSourceOrSinkTest {
 
@@ -32,8 +33,9 @@ public class MarketoSourceOrSinkTest {
 
     @Test
     public void validate() throws Exception {
-        assertEquals(ValidationResult.OK, sos.validate(null));
-
+        TMarketoInputProperties props = new TMarketoInputProperties("test");
+        sos.initialize(null, props);
+        assertEquals(Result.ERROR, sos.validate(null).getStatus());
     }
 
     @Test
@@ -48,14 +50,13 @@ public class MarketoSourceOrSinkTest {
         props.setupProperties();
         props.connection.setupProperties();
         sos.initialize(null, props);
-        assertEquals("Marketo REST API Client [null].", sos.getClientService().toString());
-        assertEquals("Marketo REST API Client [null].", sos.getClientService().toString());// 2times for cache
+        assertEquals("Marketo REST API Client [].", sos.getClientService(null).toString());
+        assertEquals("Marketo REST API Client [].", sos.getClientService(null).toString());// 2times for cache
         props.setupProperties();
         sos = new MarketoSourceOrSink();
         props.connection.apiMode.setValue(APIMode.SOAP);
         props.connection.endpoint.setValue("https://www.marketo.com");
         sos.initialize(null, props);
-        assertEquals("Marketo SOAP API Client [null].", sos.getClientService().toString());
-
+        assertEquals("Marketo SOAP API Client [null].", sos.getClientService(null).toString());
     }
 }
