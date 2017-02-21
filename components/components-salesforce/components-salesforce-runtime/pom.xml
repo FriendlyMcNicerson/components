@@ -282,7 +282,7 @@
 								<Service-Component>*</Service-Component>
 								<Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
 								<Include-Resource>
-									{maven-resources},META-INF/services/=target/classes/META-INF/services/,META-INF/maven/${project.groupId}/${project.artifactId}/dependencies.txt=target/classes/META-INF/maven/${project.groupId}/${project.artifactId}/dependencies.txt
+									{maven-resources},META-INF/maven/${project.groupId}/${project.artifactId}/dependencies.txt=target/classes/META-INF/maven/${project.groupId}/${project.artifactId}/dependencies.txt
 								</Include-Resource>
 							</instructions>
 						</configuration>
@@ -302,7 +302,7 @@
 								<Embed-Dependency>!components*|auto-service,*;scope=compile|runtime;artifactId=!commons-beanutils|commons-collections</Embed-Dependency>
 								<Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
 								<Include-Resource>
-									{maven-resources},META-INF/services/=target/classes/META-INF/services/,META-INF/maven/${project.groupId}/${project.artifactId}/dependencies.txt=target/classes/META-INF/maven/${project.groupId}/${project.artifactId}/dependencies.txt
+									{maven-resources},META-INF/maven/${project.groupId}/${project.artifactId}/dependencies.txt=target/classes/META-INF/maven/${project.groupId}/${project.artifactId}/dependencies.txt
 								</Include-Resource>
 							</instructions>
 						</configuration>
