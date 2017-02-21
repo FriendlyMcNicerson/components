@@ -51,7 +51,11 @@ import org.talend.daikon.sandbox.SandboxedInstance;
 
 import com.sforce.async.AsyncApiException;
 import com.sforce.async.BulkConnection;
-import com.sforce.soap.partner.*;
+import com.sforce.soap.partner.DescribeGlobalResult;
+import com.sforce.soap.partner.DescribeGlobalSObjectResult;
+import com.sforce.soap.partner.DescribeSObjectResult;
+import com.sforce.soap.partner.GetUserInfoResult;
+import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.ws.ConnectionException;
 import com.sforce.ws.ConnectorConfig;
 import com.sforce.ws.SessionRenewer;
@@ -111,7 +115,7 @@ public class SalesforceSourceOrSink implements SourceOrSink, SalesforceSchemaHel
 
     public static ValidationResult validateConnection(SalesforceProvideConnectionProperties properties) {
         ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
-        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader, SalesforceSourceOrSink.class);
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader, SalesforceSourceOrSink.class.getCanonicalName());
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {
             SalesforceSourceOrSink ss = (SalesforceSourceOrSink) sandboxedInstance.getInstance();
@@ -321,7 +325,7 @@ public class SalesforceSourceOrSink implements SourceOrSink, SalesforceSchemaHel
     public static List<NamedThing> getSchemaNames(RuntimeContainer container, SalesforceProvideConnectionProperties properties)
             throws IOException {
         ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
-        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader, SalesforceSourceOrSink.class);
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader, SalesforceSourceOrSink.class.getCanonicalName());
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {
             SalesforceSourceOrSink ss = (SalesforceSourceOrSink) sandboxedInstance.getInstance();
@@ -359,7 +363,7 @@ public class SalesforceSourceOrSink implements SourceOrSink, SalesforceSchemaHel
     public static Schema getSchema(RuntimeContainer container, SalesforceProvideConnectionProperties properties, String module)
             throws IOException {
         ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
-        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader, SalesforceSourceOrSink.class);
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader, SalesforceSourceOrSink.class.getCanonicalName());
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {
             SalesforceSourceOrSink ss = (SalesforceSourceOrSink) sandboxedInstance.getInstance();

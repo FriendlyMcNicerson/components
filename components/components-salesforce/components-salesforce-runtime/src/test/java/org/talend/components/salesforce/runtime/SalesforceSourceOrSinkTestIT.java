@@ -64,7 +64,7 @@ public class SalesforceSourceOrSinkTestIT extends SalesforceTestBase {
     @Test
     public void testIsolatedClassLoader() {
         ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
-        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader, SalesforceSourceOrSink.class);
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader, SalesforceSourceOrSink.class.getCanonicalName());
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {
             sandboxedInstance.getInstance();
