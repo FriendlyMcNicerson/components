@@ -277,7 +277,7 @@
 						</goals>
 						<configuration>
 							<instructions>
-								<Bundle-SymbolicName>org.talend.components.salesforce.lib</Bundle-SymbolicName>
+								<Bundle-SymbolicName>org.talend.components.salesforce.runtime.lib</Bundle-SymbolicName>
 								<Bundle-Name>${project.name} lib</Bundle-Name>
 								<Service-Component>*</Service-Component>
 								<Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
@@ -296,7 +296,7 @@
 						<configuration>
 							<classifier>bundle</classifier>
 							<instructions>
-								<Bundle-SymbolicName>org.talend.components.salesforce</Bundle-SymbolicName>
+								<Bundle-SymbolicName>org.talend.components.salesforce.runtime</Bundle-SymbolicName>
 								<Import-Package>!*internal,org.talend*,org.slf4j*,javax.xml.namespace,org.apache.commons*,org.apache.avro.*,org.apache.oltu.oauth2*,org.codehaus.jackson*</Import-Package>
 								<Service-Component>*</Service-Component>
 								<Embed-Dependency>!components*|auto-service,*;scope=compile|runtime;artifactId=!commons-beanutils|commons-collections</Embed-Dependency>

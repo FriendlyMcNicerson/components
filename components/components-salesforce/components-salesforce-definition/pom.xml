@@ -9,8 +9,6 @@
 		<relativePath>../../../components-parent/pom.xml</relativePath>
 	</parent>
 	<properties>
-	    <antlr4.version>4.6</antlr4.version>
-		<partner.version>37.0.3</partner.version>
 		<jetty.version>9.2.19.v20160908</jetty.version>
 	</properties>
 
@@ -18,36 +16,6 @@
 	<artifactId>components-salesforce-definition</artifactId>
 	<packaging>bundle</packaging>
 	<dependencies>
-
-		<dependency>
-			<groupId>com.force.api</groupId>
-			<artifactId>force-wsc</artifactId>
-			<version>38.0.1</version>
-		</dependency>
-		<!-- the following 2 deps are required for the com.force.api above -->
-		<dependency>
-			<groupId>commons-beanutils</groupId>
-			<artifactId>commons-beanutils</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-collections</groupId>
-			<artifactId>commons-collections</artifactId>
-			<version>3.2</version>
-		</dependency>
-		<!-- same as above but as an OSGI bundle -->
-		<dependency>
-			<groupId>org.apache.servicemix.bundles</groupId>
-			<artifactId>org.apache.servicemix.bundles.commons-collections</artifactId>
-			<version>3.2.1_3</version>
-			<scope>test</scope>
-		</dependency>
-
-		<!-- Generated Jar files from the WSDL -->
-		<dependency>
-			<groupId>com.force.api</groupId>
-			<artifactId>force-partner-api</artifactId>
-			<version>${partner.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
@@ -59,14 +27,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
-		<!-- guess schema feature dependency -->
-        <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>antlr4-runtime</artifactId>
-            <version>${antlr4.version}</version>
-        </dependency>
-
 		<dependency>
 			<groupId>org.talend.components</groupId>
 			<artifactId>components-api</artifactId>
@@ -151,26 +111,6 @@
 			<version>1.3</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.littleshoot</groupId>
-			<artifactId>littleproxy</artifactId>
-			<version>1.1.0</version>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>commons-codec</groupId>
-					<artifactId>commons-codec</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.commons</groupId>
-					<artifactId>commons-lang3</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
 		<!-- OSGI paxexam dependencies -->
 		<dependency>
 			<groupId>org.talend.components</groupId>
@@ -254,9 +194,6 @@
 					<argLine>-Xms512m -Xmx1024m</argLine>
 					<systemPropertyVariables>
 						<pax.exam.karaf.version>4.0.2</pax.exam.karaf.version>
-						<salesforce.user>${salesforce.user}</salesforce.user>
-						<salesforce.password>${salesforce.password}</salesforce.password>
-						<salesforce.key>${salesforce.key}</salesforce.key>
 					</systemPropertyVariables>
 				</configuration>
 			</plugin>
@@ -272,7 +209,7 @@
 						</goals>
 						<configuration>
 							<instructions>
-								<Bundle-SymbolicName>org.talend.components.salesforce.lib</Bundle-SymbolicName>
+								<Bundle-SymbolicName>org.talend.components.salesforce.definition.lib</Bundle-SymbolicName>
 								<Bundle-Name>${project.name} lib</Bundle-Name>
 								<Service-Component>*</Service-Component>
 								<Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
@@ -291,7 +228,7 @@
 						<configuration>
 							<classifier>bundle</classifier>
 							<instructions>
-								<Bundle-SymbolicName>org.talend.components.salesforce</Bundle-SymbolicName>
+								<Bundle-SymbolicName>org.talend.components.salesforce.definition</Bundle-SymbolicName>
 								<Import-Package>!*internal,org.talend*,org.slf4j*,javax.xml.namespace,org.apache.commons*,org.apache.avro.*,org.apache.oltu.oauth2*,org.codehaus.jackson*</Import-Package>
 								<Service-Component>*</Service-Component>
 								<Embed-Dependency>!components*|auto-service,*;scope=compile|runtime;artifactId=!commons-beanutils|commons-collections</Embed-Dependency>
@@ -304,23 +241,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!-- used to generate soql antlr4 parser; is not included to lifecycle -->
-            <plugin>
-                <groupId>org.antlr</groupId>
-                <artifactId>antlr4-maven-plugin</artifactId>
-                <version>${antlr4.version}</version>
-                <executions>
-                    <execution>
-                        <phase>none</phase>
-                        <goals>
-                            <goal>antlr4</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <outputDirectory>${project.build.sourceDirectory}/org/talend/components/salesforce/soql/parser</outputDirectory>
-                </configuration>
-            </plugin>
 		</plugins>
 	</build>
 </project>
