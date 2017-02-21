@@ -20,8 +20,6 @@ import org.talend.components.api.component.runtime.ExecutionEngine;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.salesforce.SalesforceConnectionProperties;
 import org.talend.components.salesforce.SalesforceDefinition;
-import org.talend.components.salesforce.runtime.SalesforceSourceOrSink;
-import org.talend.daikon.properties.Properties;
 import org.talend.daikon.properties.property.Property;
 import org.talend.daikon.runtime.RuntimeInfo;
 
@@ -52,7 +50,7 @@ public class TSalesforceConnectionDefinition extends SalesforceDefinition {
     public RuntimeInfo getRuntimeInfo(ExecutionEngine engine, ComponentProperties properties, ConnectorTopology componentType) {
         assertEngineCompatibility(engine);
         if (componentType == ConnectorTopology.NONE) {
-            return getCommonRuntimeInfo(this.getClass().getClassLoader(), SalesforceSourceOrSink.class);
+            return getCommonRuntimeInfo(this.getClass().getClassLoader(), "org.talend.components.salesforce.runtime.SalesforceSourceOrSink");
         } else {
             return null;
         }

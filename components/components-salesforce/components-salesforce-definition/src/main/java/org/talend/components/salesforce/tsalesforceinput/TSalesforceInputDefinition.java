@@ -20,8 +20,6 @@ import org.talend.components.api.component.runtime.ExecutionEngine;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.salesforce.SalesforceDefinition;
 import org.talend.components.salesforce.SalesforceModuleProperties;
-import org.talend.components.salesforce.runtime.SalesforceSource;
-import org.talend.daikon.properties.Properties;
 import org.talend.daikon.runtime.RuntimeInfo;
 
 /**
@@ -55,7 +53,7 @@ public class TSalesforceInputDefinition extends SalesforceDefinition {
     @Override
     public RuntimeInfo getRuntimeInfo(ExecutionEngine engine, ComponentProperties properties, ConnectorTopology componentType) {
         if (componentType == ConnectorTopology.OUTGOING) {
-            return getCommonRuntimeInfo(this.getClass().getClassLoader(), SalesforceSource.class);
+            return getCommonRuntimeInfo(this.getClass().getClassLoader(), "org.talend.components.salesforce.runtime.SalesforceSource");
         } else {
             return null;
         }

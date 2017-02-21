@@ -20,8 +20,6 @@ import org.talend.components.api.component.runtime.ExecutionEngine;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.common.SchemaProperties;
 import org.talend.components.salesforce.SalesforceDefinition;
-import org.talend.components.salesforce.runtime.SalesforceBulkFileSink;
-import org.talend.daikon.properties.Properties;
 import org.talend.daikon.runtime.RuntimeInfo;
 
 public class TSalesforceOutputBulkDefinition extends SalesforceDefinition {
@@ -58,7 +56,7 @@ public class TSalesforceOutputBulkDefinition extends SalesforceDefinition {
     public RuntimeInfo getRuntimeInfo(ExecutionEngine engine, ComponentProperties properties, ConnectorTopology componentType) {
         assertEngineCompatibility(engine);
         if (componentType == ConnectorTopology.INCOMING) {
-            return getCommonRuntimeInfo(this.getClass().getClassLoader(), SalesforceBulkFileSink.class);
+            return getCommonRuntimeInfo(this.getClass().getClassLoader(), "org.talend.components.salesforce.runtime.SalesforceBulkFileSink");
         } else {
             return null;
         }
