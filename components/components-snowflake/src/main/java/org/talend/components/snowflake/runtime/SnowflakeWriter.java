@@ -291,7 +291,7 @@ public final class SnowflakeWriter implements WriterWithFeedback<Result, Indexed
         int i = 0;
         for (Field f : columns) {
             columnsStr.add(f.name());
-            String key = f.schema().getProp(SchemaConstants.TALEND_COLUMN_IS_KEY);
+            String key = f.getProp(SchemaConstants.TALEND_COLUMN_IS_KEY);
             if (key != null)
                 keyStr.add(f.name());
         }
