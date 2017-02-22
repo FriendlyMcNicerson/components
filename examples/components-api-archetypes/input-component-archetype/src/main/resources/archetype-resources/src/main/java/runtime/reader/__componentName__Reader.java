@@ -28,6 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.api.component.runtime.AbstractBoundedReader;
 import org.talend.components.api.component.runtime.Result;
+import org.talend.components.common.avro.RootSchemaUtils;
+import ${package}.${componentPackage}.${componentName}Properties;
 
 /**
  * Simple implementation of a reader.
@@ -39,6 +41,13 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
     private final String filePath;
     
     private final Schema schema;
+    
+    private final Schema outOfBandSchema;
+    
+    /**
+     * Runtime Root schema
+     */
+    private final Schema rootSchema;
 
     private boolean started = false;
     
@@ -57,6 +66,10 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
         super(source);
         this.filePath = source.getFilePath();
         this.schema = source.getDesignSchema();
+        
+        outOfBandSchema = ${componentName}Properties.outOfBandSchema;
+        
+        rootSchema = RootSchemaUtils.createRootSchema(schema, outOfBandSchema);
     }
 
     @Override
@@ -76,9 +89,14 @@ public class ${componentName}Reader extends AbstractBoundedReader<IndexedRecord>
         String line = reader.readLine();
         hasMore = line != null;
         if (hasMore) {
-        	current = new GenericData.Record(schema);
-        	current.put(0, line);
-            result.totalCount++;
+        	IndexedRecord dataRecord = new GenericData.Record(schema);
+        	dataRecord.put(0, line);
+        	IndexedRecord outOfBandRecord = new GenericData.Record(outOfBandSchema);
+        	outOfBandRecord.put(0, result.totalCount);
+        	current = new GenericData.Record(rootSchema);
+        	current.put(0, dataRecord);
+        	current.put(1, outOfBandRecord);
+        	result.totalCount++;
         }
         return hasMore;
     }

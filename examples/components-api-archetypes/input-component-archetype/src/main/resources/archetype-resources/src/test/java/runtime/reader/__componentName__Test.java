@@ -79,14 +79,23 @@ public class ${componentName}Test {
 
             ${componentName}Reader reader = source.createReader(null);
             assertThat(reader.start(), is(true));
-            IndexedRecord current = reader.getCurrent();
-            assertThat(current.get(0), is((Object) "The first line"));
+            IndexedRecord currentRootRecord = reader.getCurrent();
+            IndexedRecord currentDataRecord = (IndexedRecord) currentRootRecord.get(0);
+            IndexedRecord currentOutOfBandRecord = (IndexedRecord) currentRootRecord.get(1);
+            assertThat(currentDataRecord.get(0), is((Object) "The first line"));
+            assertThat(currentOutOfBandRecord.get(0), is((Object) 0));
             // No auto advance when calling getCurrent more than once.
-            current = reader.getCurrent();
-            assertThat(current.get(0), is((Object) "The first line"));
+            currentRootRecord = reader.getCurrent();
+            currentDataRecord = (IndexedRecord) currentRootRecord.get(0);
+            currentOutOfBandRecord = (IndexedRecord) currentRootRecord.get(1);
+            assertThat(currentDataRecord.get(0), is((Object) "The first line"));
+            assertThat(currentOutOfBandRecord.get(0), is((Object) 0));
             assertThat(reader.advance(), is(true));
-            current = reader.getCurrent();
-            assertThat(current.get(0), is((Object) "The second line"));
+            currentRootRecord = reader.getCurrent();
+            currentDataRecord = (IndexedRecord) currentRootRecord.get(0);
+            currentOutOfBandRecord = (IndexedRecord) currentRootRecord.get(1);
+            assertThat(currentDataRecord.get(0), is((Object) "The second line"));
+            assertThat(currentOutOfBandRecord.get(0), is((Object) 1));
             assertThat(reader.advance(), is(false));
         } finally {
             tempFile.delete();

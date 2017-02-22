@@ -21,11 +21,12 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.apache.avro.Schema;
-import org.apache.avro.Schema.Field.Order;
+import org.apache.avro.Schema.Field;
 import org.talend.components.api.component.Connector;
 import org.talend.components.api.component.PropertyPathConnector;
 import org.talend.components.common.FixedConnectorsComponentProperties;
 import org.talend.components.common.SchemaProperties;
+import org.talend.components.common.avro.RootSchemaUtils;
 import org.talend.daikon.avro.AvroUtils;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
@@ -55,6 +56,13 @@ import org.talend.daikon.properties.property.StringProperty;
 public class ${componentName}Properties extends FixedConnectorsComponentProperties {
     
     private static final Schema LINE_SCHEMA;
+    
+    /**
+     * Out of band (a.k.a flow variables) data schema
+     * 
+     * It has one field: int currentLine
+     */
+    public static final Schema outOfBandSchema;
 
     public StringProperty filename = PropertyFactory.newString("filename"); //$NON-NLS-1$
     
@@ -67,15 +75,21 @@ public class ${componentName}Properties extends FixedConnectorsComponentProperti
     protected transient PropertyPathConnector mainConnector = new PropertyPathConnector(Connector.MAIN_NAME, "schema"); //$NON-NLS-1$
     
     /**
-     * In this case user can't retrieve any other data from file as lines. So, component specifies default schema here - <code>LINE_SCHEMA</code>
+     * In this component user can't retrieve any other data from file as lines. So, component specifies default schema here - <code>LINE_SCHEMA</code>
      * Also this schema should not be editable. So, special property <code>TALEND_IS_LOCKED</code> is added to specify that runtime environment should
      * not allow to edit this schema
+     *
+     * Also sets Out of band schema, which is not supposed to be changed by user
      */
     static {
         Schema stringSchema = AvroUtils._string();
-        Schema.Field lineField = new Schema.Field("line", stringSchema, null, (Object) null, Order.ASCENDING);
+        Field lineField = new Schema.Field("line", stringSchema, null, (Object) null);
         LINE_SCHEMA = Schema.createRecord("file", null, null, false, Collections.singletonList(lineField));
         LINE_SCHEMA.addProp(TALEND_IS_LOCKED, "true");
+        
+        Field currentLineField = new Field("currentLine", Schema.create(Schema.Type.INT), null, (Object) null);
+        outOfBandSchema = Schema.createRecord("OutOfBand", null, null, false);
+        outOfBandSchema.setFields(Collections.singletonList(currentLineField));
     }
  
     public ${componentName}Properties(String name) {
@@ -111,6 +125,30 @@ public class ${componentName}Properties extends FixedConnectorsComponentProperti
             return Collections.singleton(mainConnector);
         }
         return Collections.emptySet();
+    }
+    
+    /**
+     * If component provides out of band data it should override this method to provide out of band data definition - 
+     * it's schema. This method returns Root schema, which hierarchical schema and contains 2 schemas: <br>
+     * 1. Main data schema
+     * 2. Out of band data schema
+     * 
+     * Runtime platform should retrieve required schema, main schema or out of band schema, from Root schema
+     * 
+     * Main schema could be changes by user. So method should reconstruct Root schema each time
+     * 
+     * @param connector token to get the associated schema
+     * @param isOutputConnection whether the connection is an outgoing or incoming one
+     * @return Root schema, which contains main schema related to connector and static Out of band schema 
+     */
+    @Override
+    public Schema getSchema(Connector connector, boolean isOutputConnection) {
+    	// design-time main schema associated with specified connector
+    	Schema mainSchema = super.getSchema(connector, isOutputConnection);
+    	
+    	// constructs design-time Root schema
+    	Schema rootSchema = RootSchemaUtils.createRootSchema(mainSchema, outOfBandSchema);
+    	return rootSchema;
     }
 
 }
