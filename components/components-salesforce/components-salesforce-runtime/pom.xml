@@ -234,6 +234,12 @@
 							<artifacts>
 								<artifact>
 									<groupId>${project.groupId}</groupId>
+									<artifactId>components-salesforce-definition</artifactId>
+									<classifier>bundle</classifier>
+									<version>${project.version}</version>
+								</artifact>
+								<artifact>
+									<groupId>${project.groupId}</groupId>
 									<artifactId>${project.artifactId}</artifactId>
 									<classifier>bundle</classifier>
 									<version>${project.version}</version>
