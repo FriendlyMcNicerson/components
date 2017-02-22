@@ -19,17 +19,22 @@ import static org.talend.daikon.properties.property.PropertyFactory.newString;
 
 import java.util.EnumSet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.talend.components.api.properties.ComponentPropertiesImpl;
 import org.talend.components.api.properties.ComponentReferenceProperties;
 import org.talend.components.marketo.MarketoProvideConnectionProperties;
+import org.talend.components.marketo.runtime.MarketoSource;
+import org.talend.components.marketo.runtime.MarketoSourceOrSink;
 import org.talend.daikon.properties.PresentationItem;
+import org.talend.daikon.properties.Properties;
+import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
 import org.talend.daikon.properties.property.Property;
+import org.talend.daikon.properties.service.Repository;
 
 public class TMarketoConnectionProperties extends ComponentPropertiesImpl implements MarketoProvideConnectionProperties {
-
-    private static final long serialVersionUID = 145738798798151L;
 
     public enum APIMode {
         REST,
@@ -42,6 +47,9 @@ public class TMarketoConnectionProperties extends ComponentPropertiesImpl implem
 
     public Property<String> name = newString("name").setRequired();
 
+    private String repositoryLocation;
+
+    //
     public PresentationItem testConnection = new PresentationItem("testConnection", "Test connection");
 
     public Property<String> endpoint = newString("endpoint").setRequired();
@@ -60,6 +68,11 @@ public class TMarketoConnectionProperties extends ComponentPropertiesImpl implem
 
     public ComponentReferenceProperties<TMarketoConnectionProperties> referencedComponent = new ComponentReferenceProperties<>(
             "referencedComponent", TMarketoConnectionDefinition.COMPONENT_NAME);
+
+    //
+    private static final long serialVersionUID = 145738798798151L;
+
+    private transient static final Logger LOG = LoggerFactory.getLogger(TMarketoConnectionProperties.class);
 
     public TMarketoConnectionProperties(String name) {
         super(name);
@@ -88,8 +101,8 @@ public class TMarketoConnectionProperties extends ComponentPropertiesImpl implem
 
         Form mainForm = Form.create(this, Form.MAIN);
         mainForm.addRow(endpoint);
-        mainForm.addRow(widget(secretKey).setWidgetType(Widget.HIDDEN_TEXT_WIDGET_TYPE));
-        mainForm.addColumn(clientAccessId);
+        mainForm.addRow(clientAccessId);
+        mainForm.addColumn(widget(secretKey).setWidgetType(Widget.HIDDEN_TEXT_WIDGET_TYPE));
 
         // Advanced
         Form advancedForm = Form.create(this, Form.ADVANCED);
@@ -108,9 +121,12 @@ public class TMarketoConnectionProperties extends ComponentPropertiesImpl implem
         Form wizardForm = Form.create(this, FORM_WIZARD);
         wizardForm.addRow(name);
         wizardForm.addRow(endpoint);
+        wizardForm.addRow(clientAccessId);
         wizardForm.addRow(widget(secretKey).setWidgetType(Widget.HIDDEN_TEXT_WIDGET_TYPE));
-        wizardForm.addColumn(clientAccessId);
-        wizardForm.addColumn(widget(testConnection).setLongRunning(true).setWidgetType(Widget.BUTTON_WIDGET_TYPE));
+        wizardForm.addRow(widget(testConnection).setLongRunning(true).setWidgetType(Widget.BUTTON_WIDGET_TYPE));
+        wizardForm.addRow(timeout);
+        wizardForm.addRow(maxReconnAttemps);
+        wizardForm.addRow(attemptsIntervalTime);
     }
 
     @Override
@@ -147,6 +163,29 @@ public class TMarketoConnectionProperties extends ComponentPropertiesImpl implem
         refreshLayout(getForm(Form.REFERENCE));
     }
 
+    public ValidationResult validateTestConnection() throws Exception {
+        ValidationResult vr = MarketoSource.validateConnection(this);
+        if (vr.getStatus() == ValidationResult.Result.OK) {
+            vr.setMessage("Connection successful");
+            getForm(FORM_WIZARD).setAllowForward(true);
+            getForm(FORM_WIZARD).setAllowFinish(true);
+        } else {
+            getForm(FORM_WIZARD).setAllowForward(false);
+        }
+        return vr;
+    }
+
+    public ValidationResult afterFormFinishWizard(Repository<Properties> repo) throws Exception {
+
+        ValidationResult vr = MarketoSourceOrSink.validateConnection(this);
+        if (vr.getStatus() != ValidationResult.Result.OK) {
+            return vr;
+        }
+        String repoLoc = repo.storeProperties(this, this.name.getValue(), repositoryLocation, null);
+        LOG.warn("Stored connection to {}.", repoLoc);
+        return ValidationResult.OK;
+    }
+
     @Override
     public TMarketoConnectionProperties getConnectionProperties() {
         return this;
@@ -162,6 +201,11 @@ public class TMarketoConnectionProperties extends ComponentPropertiesImpl implem
             return refProps;
         }
         return null;
+    }
+
+    public TMarketoConnectionProperties setRepositoryLocation(String repositoryLocation) {
+        this.repositoryLocation = repositoryLocation;
+        return this;
     }
 
 }
