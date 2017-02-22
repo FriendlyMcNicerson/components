@@ -27,7 +27,8 @@ import org.talend.components.api.component.runtime.DependenciesReader;
 import org.talend.components.api.component.runtime.SimpleRuntimeInfo;
 import org.talend.components.common.ComponentConstants;
 import org.talend.components.salesforce.SalesforceConnectionModuleProperties;
-import org.talend.components.salesforce.runtime.SalesforceRuntimeAdapter;
+import org.talend.components.salesforce.runtime.SalesforceRuntimeSourceOrSink;
+import org.talend.components.salesforce.schema.SalesforceSchemaHelper;
 import org.talend.daikon.properties.PresentationItem;
 import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.presentation.Form;
@@ -109,16 +110,16 @@ public class TSalesforceInputProperties extends SalesforceConnectionModuleProper
                         "org.talend.components.salesforce.runtime.SalesforceSourceOrSink"),
                 connection.getClass().getClassLoader())) {
 
-            SalesforceRuntimeAdapter salesforceSourceOrSink = (SalesforceRuntimeAdapter) sandboxISalesforceSourceOrSink.getInstance();
+            SalesforceRuntimeSourceOrSink salesforceSourceOrSink = (SalesforceRuntimeSourceOrSink) sandboxISalesforceSourceOrSink.getInstance();
             salesforceSourceOrSink.initialize(null, this);
 
-            Schema schema = salesforceSourceOrSink.guessSchema(query.getValue());
+            Schema schema = ((SalesforceSchemaHelper<Schema>)salesforceSourceOrSink).guessSchema(query.getValue());
 
             module.main.schema.setValue(schema);
             validationResult.setStatus(ValidationResult.Result.OK);
 
-//        } catch (ConnectionException e1) {
-//            validationResult.setStatus(ValidationResult.Result.ERROR).setMessage("Could not call Salesforce API. Schema cannot be guessed.");
+        } catch (RuntimeException e1) {
+            validationResult.setStatus(ValidationResult.Result.ERROR).setMessage("Could not call Salesforce API. Schema cannot be guessed.");
         } catch (IOException e2) {
             validationResult.setStatus(ValidationResult.Result.ERROR).setMessage("Could not connect to Salesforce server. Schema cannot be guessed.");
         }

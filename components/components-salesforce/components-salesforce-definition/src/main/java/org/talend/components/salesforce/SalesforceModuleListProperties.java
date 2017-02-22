@@ -22,7 +22,7 @@ import org.apache.commons.lang3.reflect.TypeLiteral;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.properties.ComponentPropertiesImpl;
 import org.talend.components.salesforce.runtime.ExceptionUtil;
-import org.talend.components.salesforce.runtime.SalesforceRuntimeAdapter;
+import org.talend.components.salesforce.runtime.SalesforceRuntimeSourceOrSink;
 import org.talend.daikon.NamedThing;
 import org.talend.daikon.properties.Properties;
 import org.talend.daikon.properties.ValidationResult;
@@ -82,7 +82,7 @@ public class SalesforceModuleListProperties extends ComponentPropertiesImpl impl
                 "org.talend.components.salesforce.runtime.SalesforceSourceOrSink");
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {
-            SalesforceRuntimeAdapter ss = (SalesforceRuntimeAdapter) sandboxedInstance.getInstance();
+            SalesforceRuntimeSourceOrSink ss = (SalesforceRuntimeSourceOrSink) sandboxedInstance.getInstance();
             ss.initialize(null, this);
             ValidationResult vr = ss.validate(null);
             if (vr.getStatus() == ValidationResult.Result.OK) {
@@ -106,7 +106,7 @@ public class SalesforceModuleListProperties extends ComponentPropertiesImpl impl
                 "org.talend.components.salesforce.runtime.SalesforceSourceOrSink");
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {
-            SalesforceRuntimeAdapter ss = (SalesforceRuntimeAdapter) sandboxedInstance.getInstance();
+            SalesforceRuntimeSourceOrSink ss = (SalesforceRuntimeSourceOrSink) sandboxedInstance.getInstance();
             ss.initialize(null, this);
             ValidationResult vr = ss.validate(null);
             if (vr.getStatus() != ValidationResult.Result.OK) {

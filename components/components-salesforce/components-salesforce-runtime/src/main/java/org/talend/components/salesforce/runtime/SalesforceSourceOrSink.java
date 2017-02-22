@@ -29,7 +29,6 @@ import org.apache.avro.SchemaBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.talend.components.api.component.runtime.SourceOrSink;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.properties.ComponentProperties;
@@ -60,7 +59,7 @@ import com.sforce.ws.ConnectionException;
 import com.sforce.ws.ConnectorConfig;
 import com.sforce.ws.SessionRenewer;
 
-public class SalesforceSourceOrSink implements SourceOrSink, SalesforceSchemaHelper<Schema> {
+public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, SalesforceSchemaHelper<Schema> {
 
     private transient static final Logger LOG = LoggerFactory.getLogger(SalesforceSourceOrSink.class);
 
@@ -115,7 +114,8 @@ public class SalesforceSourceOrSink implements SourceOrSink, SalesforceSchemaHel
 
     public static ValidationResult validateConnection(SalesforceProvideConnectionProperties properties) {
         ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
-        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader, SalesforceSourceOrSink.class.getCanonicalName());
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader,
+                SalesforceSourceOrSink.class.getCanonicalName());
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {
             SalesforceSourceOrSink ss = (SalesforceSourceOrSink) sandboxedInstance.getInstance();
@@ -325,7 +325,8 @@ public class SalesforceSourceOrSink implements SourceOrSink, SalesforceSchemaHel
     public static List<NamedThing> getSchemaNames(RuntimeContainer container, SalesforceProvideConnectionProperties properties)
             throws IOException {
         ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
-        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader, SalesforceSourceOrSink.class.getCanonicalName());
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader,
+                SalesforceSourceOrSink.class.getCanonicalName());
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {
             SalesforceSourceOrSink ss = (SalesforceSourceOrSink) sandboxedInstance.getInstance();
@@ -363,7 +364,8 @@ public class SalesforceSourceOrSink implements SourceOrSink, SalesforceSchemaHel
     public static Schema getSchema(RuntimeContainer container, SalesforceProvideConnectionProperties properties, String module)
             throws IOException {
         ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
-        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader, SalesforceSourceOrSink.class.getCanonicalName());
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader,
+                SalesforceSourceOrSink.class.getCanonicalName());
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {
             SalesforceSourceOrSink ss = (SalesforceSourceOrSink) sandboxedInstance.getInstance();
@@ -508,7 +510,7 @@ public class SalesforceSourceOrSink implements SourceOrSink, SalesforceSchemaHel
     }
 
     @Override
-    public Schema guessSchema(String soqlQuery) throws IOException, ConnectionException {
+    public Schema guessSchema(String soqlQuery) throws IOException {
         SoqlQuery query = SoqlQuery.getInstance();
         query.init(soqlQuery);
 
@@ -517,7 +519,13 @@ public class SalesforceSourceOrSink implements SourceOrSink, SalesforceSchemaHel
 
         SchemaBuilder.FieldAssembler fieldAssembler = SchemaBuilder.record("GuessedSchema").fields();
 
-        DescribeSObjectResult describeSObjectResult = connect(null).connection.describeSObject(drivingEntityName);
+        DescribeSObjectResult describeSObjectResult = null;
+        
+        try {
+            describeSObjectResult = connect(null).connection.describeSObject(drivingEntityName);
+        } catch (ConnectionException e) {
+            throw new RuntimeException(e.getMessage());
+        }
 
         Schema entitySchema = SalesforceAvroRegistry.get().inferSchema(describeSObjectResult);
 

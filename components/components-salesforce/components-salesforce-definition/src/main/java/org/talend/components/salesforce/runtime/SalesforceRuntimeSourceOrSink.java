@@ -12,11 +12,7 @@
 // ============================================================================
 package org.talend.components.salesforce.runtime;
 
-import java.io.IOException;
-
-import org.apache.avro.Schema;
 import org.talend.components.api.component.runtime.SourceOrSink;
 
-public interface SalesforceRuntimeAdapter extends SourceOrSink {
-    Schema guessSchema(String soqlQuery) throws IOException;
+public interface SalesforceRuntimeSourceOrSink extends SourceOrSink {
 }
