@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.avro.Schema;
 
 /**
- * Builds SOQL query with required and optional fields to initialize. Implements Builder-pattern
+ * This is used tu build the SOQL query.
  */
 public class SoqlQueryBuilder {
 
@@ -17,27 +17,19 @@ public class SoqlQueryBuilder {
 
     private static final String FROM_CLAUSE = "FROM";
 
-    private static final String WHERE_CLAUSE = "WHERE";
-
-    private static final String WITH = "WITH";
-
-    private static final String GROUP_BY = "GROUP BY";
-
-    private static final String ORDER_BY = "ORDER BY";
-
-    private static final String LIMIT = "LIMIT";
-
     private static final String SPACE_SEPARATOR = " ";
 
     private static final String COMMA = ",";
 
     private static final String DOT = ".";
 
-    private static final String OPEN_BRACKET = "(";
+    private static final String LEFT_PARENTHESIS = "(";
 
-    private static final String CLOSE_BRACKET = ")";
+    private static final String RIGHT_PARENTHESIS = ")";
 
     private static final String UNDERSCORE = "_";
+
+    private static final String DOUBLE_QUOTE = "\"";
 
     private static final String CUSTOM_FIELD_SUFFIX = "__c";
 
@@ -48,114 +40,21 @@ public class SoqlQueryBuilder {
     /**
      * Required field {@link org.apache.avro.Schema} schema
      */
-    private final Schema schema;
+    private Schema schema;
 
     /**
      * Required field {@link java.lang.String} entityName
      */
-    private final String entityName;
+    private String entityName;
 
-    /**
-     * Optional field {@link java.lang.String} whereClauseConditionExpressionString which is used in case of WHERE part
-     * is needed
-     */
-    private final String whereClauseConditionExpressionString;
-
-    /**
-     * Optional field {@link java.lang.String} withFilteringExpressionString which is used in case of WITH part is
-     * needed
-     */
-    private final String withFilteringExpressionString;
-
-    /**
-     * Optional field {@link java.lang.String} grouping which is used in case of GROUP BY part is needed
-     */
-    private final String grouping;
-
-    /**
-     * Optional field {@link java.lang.String} ordering which is used in case of ORDER BY part is needed
-     */
-    private final String ordering;
-
-    /**
-     * Optional field {@link java.lang.String} numberOfRowsToReturn which is used in case of LIMIT part is needed
-     */
-    private final int numberOfRowsToReturn;
-
-    /**
-     * Static inner class for Builder pattern implementation
-     */
-    public static class Builder {
-
-        /**
-         * Required fields
-         */
-        private final Schema schema;
-
-        private final String entityName;
-
-        /**
-         * Optional fields
-         */
-        private String whereClauseConditionExpressionString;
-
-        private String withFilteringExpressionString;
-
-        private String grouping;
-
-        private String ordering;
-
-        private int numberOfRowsToReturn;
-
-        /**
-         * This constructor is used for required fields initialization.
-         *
-         * @param schema {@link org.apache.avro.Schema} first parameter
-         * @param entityName {@link java.lang.String} second parameter
-         */
-        public Builder(Schema schema, String entityName) {
-            this.schema = schema;
-            this.entityName = entityName;
-        }
-
-        public Builder whereClauseConditionExpressionString(String value) {
-            whereClauseConditionExpressionString = value;
-            return this;
-        }
-
-        public Builder withFilteringExpressionString(String value) {
-            withFilteringExpressionString = value;
-            return this;
-        }
-
-        public Builder ordering(String value) {
-            ordering = value;
-            return this;
-        }
-
-        public Builder grouping(String value) {
-            grouping = value;
-            return this;
-        }
-
-        public Builder numberOfRowsToReturn(int value) {
-            numberOfRowsToReturn = value;
-            return this;
-        }
-
-        public SoqlQueryBuilder build() {
-            return new SoqlQueryBuilder(this);
-        }
+    public SoqlQueryBuilder(Schema schema, String entityName) {
+        this.schema = schema;
+        this.entityName = entityName;
     }
 
-    private SoqlQueryBuilder(Builder builder) {
-        schema = builder.schema;
-        entityName = builder.entityName;
-        whereClauseConditionExpressionString = builder.whereClauseConditionExpressionString;
-        withFilteringExpressionString = builder.withFilteringExpressionString;
-        grouping = builder.grouping;
-        ordering = builder.ordering;
-        numberOfRowsToReturn = builder.numberOfRowsToReturn;
+    public void init(Schema schema, String entityName) {
+        this.schema = schema;
+        this.entityName = entityName;
     }
 
     /**
@@ -166,74 +65,71 @@ public class SoqlQueryBuilder {
     public String buildSoqlQuery() {
         StringBuilder resultQuery = new StringBuilder();
         List<String> complexFields = new ArrayList<>();
-        resultQuery.append("\"").append(SELECT_STATEMENT).append(SPACE_SEPARATOR);
 
-        for (Schema.Field item : schema.getFields()) {
-            if (item.name().contains(CUSTOM_FIELD_SUFFIX)) {
-                resultQuery.append(item.name()).append(COMMA).append(SPACE_SEPARATOR);
-            } else if (item.name().contains(UNDERSCORE) && item.name().contains(RECORDS)) {
-                complexFields.add(item.name());
-            } else if (item.name().contains(UNDERSCORE) && !item.name().contains(RECORDS)
-                    && !item.name().contains(CUSTOM_FIELD_SUFFIX)) {
-                resultQuery.append(item.name().replace('_', '.')).append(COMMA).append(SPACE_SEPARATOR);
+        resultQuery.append(DOUBLE_QUOTE).append(SELECT_STATEMENT).append(SPACE_SEPARATOR);
+
+        for (Schema.Field field : schema.getFields()) {
+            String fieldName = field.name();
+            if (isCustomField(fieldName)) {
+                resultQuery.append(fieldName).append(COMMA).append(SPACE_SEPARATOR);
+            } else if (isChildField(fieldName)) {
+                complexFields.add(fieldName);
+            } else if (isParentField(fieldName)) {
+                resultQuery.append(fieldName.replace('_', '.')).append(COMMA).append(SPACE_SEPARATOR);
             } else {
-                resultQuery.append(item.name()).append(COMMA).append(SPACE_SEPARATOR);
+                resultQuery.append(fieldName).append(COMMA).append(SPACE_SEPARATOR);
             }
         }
 
         resultQuery.delete(resultQuery.length() - 2, resultQuery.length());
+
         if (!complexFields.isEmpty()) {
-            resultQuery.append(COMMA).append(SPACE_SEPARATOR).append(buildSubquery(complexFields));
+            resultQuery.append(COMMA).append(SPACE_SEPARATOR);
+            buildSubquery(complexFields, resultQuery);
         }
 
         resultQuery.append(SPACE_SEPARATOR).append(FROM_CLAUSE).append(SPACE_SEPARATOR).append(entityName);
 
-        if (whereClauseConditionExpressionString != null && !whereClauseConditionExpressionString.isEmpty()) {
-            resultQuery.append(SPACE_SEPARATOR).append(WHERE_CLAUSE).append(SPACE_SEPARATOR)
-                    .append(whereClauseConditionExpressionString);
-        }
-
-        if (withFilteringExpressionString != null && !withFilteringExpressionString.isEmpty()) {
-            resultQuery.append(SPACE_SEPARATOR).append(WITH).append(SPACE_SEPARATOR).append(withFilteringExpressionString);
-        }
-
-        if (grouping != null && !grouping.isEmpty()) {
-            resultQuery.append(SPACE_SEPARATOR).append(GROUP_BY).append(SPACE_SEPARATOR).append(grouping);
-        }
-
-        if (ordering != null && !ordering.isEmpty()) {
-            resultQuery.append(SPACE_SEPARATOR).append(ORDER_BY).append(SPACE_SEPARATOR).append(ordering);
-        }
-
-        if (numberOfRowsToReturn > 0) {
-            resultQuery.append(SPACE_SEPARATOR).append(LIMIT).append(SPACE_SEPARATOR).append(numberOfRowsToReturn);
-        }
-
-        return resultQuery.append("\"").toString();
+        return resultQuery.append(DOUBLE_QUOTE).toString();
     }
 
-    private String buildSubquery(List<String> inputStrings) {
-        StringBuilder builder = new StringBuilder();
-
-        builder.append(OPEN_BRACKET).append(SELECT_STATEMENT).append(SPACE_SEPARATOR);
+    private void buildSubquery(List<String> inputStrings, StringBuilder sb) {
+        sb.append(LEFT_PARENTHESIS).append(SELECT_STATEMENT).append(SPACE_SEPARATOR);
 
         for (String item : inputStrings) {
             String[] array = item.split(UNDERSCORE);
             if (array.length == 3) {
-                builder.append(array[SKIP_SUBENTITY_AND_RECORDS_INDEX]).append(COMMA).append(SPACE_SEPARATOR);
+                sb.append(array[SKIP_SUBENTITY_AND_RECORDS_INDEX]).append(COMMA).append(SPACE_SEPARATOR);
             } else {
                 for (int i = SKIP_SUBENTITY_AND_RECORDS_INDEX; i < array.length; i++) {
-                    builder.append(array[i]).append(DOT);
+                    sb.append(array[i]).append(DOT);
                 }
-                builder.delete(builder.length() - 1, builder.length());
-                builder.append(COMMA).append(SPACE_SEPARATOR);
+                sb.delete(sb.length() - 1, sb.length());
+                sb.append(COMMA).append(SPACE_SEPARATOR);
             }
         }
-        builder.delete(builder.length() - 2, builder.length());
 
-        builder.append(SPACE_SEPARATOR).append(FROM_CLAUSE).append(SPACE_SEPARATOR)
-                .append(inputStrings.get(0).split(UNDERSCORE)[0]).append(CLOSE_BRACKET);
+        sb.delete(sb.length() - 2, sb.length());
 
-        return builder.toString();
+        sb.append(SPACE_SEPARATOR).append(FROM_CLAUSE).append(SPACE_SEPARATOR).append(inputStrings.get(0).split(UNDERSCORE)[0])
+                .append(RIGHT_PARENTHESIS);
+    }
+
+    /**
+     * Checks whether {code}fieldName{/code} is name of custom field. Custom fields end with "__c" string
+     * 
+     * @param fieldName
+     * @return
+     */
+    private boolean isCustomField(String fieldName) {
+        return fieldName.endsWith(CUSTOM_FIELD_SUFFIX);
+    }
+
+    private boolean isChildField(String fieldName) {
+        return fieldName.contains(UNDERSCORE) && fieldName.contains(RECORDS);
+    }
+
+    private boolean isParentField(String fieldName) {
+        return fieldName.contains(UNDERSCORE) && !fieldName.contains(RECORDS) && !isCustomField(fieldName);
     }
 }
