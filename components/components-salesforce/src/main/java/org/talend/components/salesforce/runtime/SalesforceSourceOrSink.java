@@ -537,7 +537,7 @@ public class SalesforceSourceOrSink implements SourceOrSink, SalesforceSchemaHel
      * @param entityName is the module name
      */
     public String guessQuery(Schema schema, String entityName) {
-        return new SoqlQueryBuilder.Builder(schema, entityName).build().buildSoqlQuery();
+        return new SoqlQueryBuilder(schema, entityName).buildSoqlQuery();
     }
 
 }
