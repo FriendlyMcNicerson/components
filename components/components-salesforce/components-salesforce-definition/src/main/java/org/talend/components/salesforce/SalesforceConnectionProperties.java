@@ -170,7 +170,7 @@ public class SalesforceConnectionProperties extends ComponentPropertiesImpl impl
 
     public ValidationResult validateTestConnection() throws Exception {
         ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
-        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader,
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(
                 "org.talend.components.salesforce.runtime.SalesforceSourceOrSink");
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {

@@ -56,7 +56,7 @@ public class TSalesforceOutputBulkDefinition extends SalesforceDefinition {
     public RuntimeInfo getRuntimeInfo(ExecutionEngine engine, ComponentProperties properties, ConnectorTopology componentType) {
         assertEngineCompatibility(engine);
         if (componentType == ConnectorTopology.INCOMING) {
-            return getCommonRuntimeInfo(this.getClass().getClassLoader(), "org.talend.components.salesforce.runtime.SalesforceBulkFileSink");
+            return getCommonRuntimeInfo("org.talend.components.salesforce.runtime.SalesforceBulkFileSink");
         } else {
             return null;
         }

@@ -78,7 +78,7 @@ public class SalesforceModuleListProperties extends ComponentPropertiesImpl impl
 
     public void beforeFormPresentMain() throws Exception {
         ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
-        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader,
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(
                 "org.talend.components.salesforce.runtime.SalesforceSourceOrSink");
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {
@@ -102,7 +102,7 @@ public class SalesforceModuleListProperties extends ComponentPropertiesImpl impl
 
     public ValidationResult afterFormFinishMain(Repository<Properties> repo) throws Exception {
         ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
-        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader,
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(
                 "org.talend.components.salesforce.runtime.SalesforceSourceOrSink");
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {

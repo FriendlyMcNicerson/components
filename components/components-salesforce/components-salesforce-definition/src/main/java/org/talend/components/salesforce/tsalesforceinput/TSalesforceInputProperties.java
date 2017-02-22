@@ -24,7 +24,7 @@ import java.util.Set;
 import org.apache.avro.Schema;
 import org.talend.components.api.component.PropertyPathConnector;
 import org.talend.components.api.component.runtime.DependenciesReader;
-import org.talend.components.api.component.runtime.SimpleRuntimeInfo;
+import org.talend.components.api.component.runtime.JarRuntimeInfo;
 import org.talend.components.common.ComponentConstants;
 import org.talend.components.salesforce.SalesforceConnectionModuleProperties;
 import org.talend.components.salesforce.runtime.SalesforceRuntimeSourceOrSink;
@@ -105,7 +105,7 @@ public class TSalesforceInputProperties extends SalesforceConnectionModuleProper
         ValidationResult validationResult = new ValidationResult();
 
         try (SandboxedInstance sandboxISalesforceSourceOrSink = RuntimeUtil.createRuntimeClass(
-                new SimpleRuntimeInfo(this.getClass().getClassLoader(),
+                new JarRuntimeInfo("mvn:org.talend.components/components-salesforce-runtime",
                         DependenciesReader.computeDependenciesFilePath("org.talend.components", "components-salesforce-runtime"),
                         "org.talend.components.salesforce.runtime.SalesforceSourceOrSink"),
                 connection.getClass().getClassLoader())) {

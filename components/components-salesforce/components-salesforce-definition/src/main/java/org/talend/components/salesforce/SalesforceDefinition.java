@@ -15,7 +15,7 @@ package org.talend.components.salesforce;
 import org.talend.components.api.component.AbstractComponentDefinition;
 import org.talend.components.api.component.runtime.DependenciesReader;
 import org.talend.components.api.component.runtime.ExecutionEngine;
-import org.talend.components.api.component.runtime.SimpleRuntimeInfo;
+import org.talend.components.api.component.runtime.JarRuntimeInfo;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.daikon.properties.property.Property;
 import org.talend.daikon.runtime.RuntimeInfo;
@@ -43,9 +43,10 @@ public abstract class SalesforceDefinition extends AbstractComponentDefinition {
         return new Property[] { RETURN_ERROR_MESSAGE_PROP, RETURN_TOTAL_RECORD_COUNT_PROP };
     }
 
-    public static RuntimeInfo getCommonRuntimeInfo(ClassLoader classLoader, String clazzFullName) {
-        return new SimpleRuntimeInfo(classLoader,
-                DependenciesReader.computeDependenciesFilePath("org.talend.components", "components-salesforce-runtime"), clazzFullName);
+    public static RuntimeInfo getCommonRuntimeInfo(String clazzFullName) {
+        return new JarRuntimeInfo("mvn:org.talend.components/components-salesforce-runtime",
+                DependenciesReader.computeDependenciesFilePath("org.talend.components", "components-salesforce-runtime"),
+                clazzFullName);
     }
 
 }

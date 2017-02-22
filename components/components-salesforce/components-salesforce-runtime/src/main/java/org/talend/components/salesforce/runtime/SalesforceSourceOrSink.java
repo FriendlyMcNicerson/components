@@ -114,7 +114,7 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
 
     public static ValidationResult validateConnection(SalesforceProvideConnectionProperties properties) {
         ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
-        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader,
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(
                 SalesforceSourceOrSink.class.getCanonicalName());
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {
@@ -325,7 +325,7 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
     public static List<NamedThing> getSchemaNames(RuntimeContainer container, SalesforceProvideConnectionProperties properties)
             throws IOException {
         ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
-        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader,
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(
                 SalesforceSourceOrSink.class.getCanonicalName());
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {
@@ -364,7 +364,7 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
     public static Schema getSchema(RuntimeContainer container, SalesforceProvideConnectionProperties properties, String module)
             throws IOException {
         ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
-        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(classLoader,
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(
                 SalesforceSourceOrSink.class.getCanonicalName());
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {

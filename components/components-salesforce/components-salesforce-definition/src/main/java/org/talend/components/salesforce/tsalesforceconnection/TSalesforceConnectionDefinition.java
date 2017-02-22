@@ -50,7 +50,7 @@ public class TSalesforceConnectionDefinition extends SalesforceDefinition {
     public RuntimeInfo getRuntimeInfo(ExecutionEngine engine, ComponentProperties properties, ConnectorTopology componentType) {
         assertEngineCompatibility(engine);
         if (componentType == ConnectorTopology.NONE) {
-            return getCommonRuntimeInfo(this.getClass().getClassLoader(), "org.talend.components.salesforce.runtime.SalesforceSourceOrSink");
+            return getCommonRuntimeInfo("org.talend.components.salesforce.runtime.SalesforceSourceOrSink");
         } else {
             return null;
         }
