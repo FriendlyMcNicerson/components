@@ -47,6 +47,7 @@ import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.generic.IndexedRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.talend.components.marketo.MarketoConstants;
 import org.talend.components.marketo.runtime.client.rest.response.CustomObjectResult;
 import org.talend.components.marketo.runtime.client.rest.response.DescribeFieldsResult;
 import org.talend.components.marketo.runtime.client.rest.response.LeadActivitiesResult;
@@ -80,7 +81,7 @@ public class MarketoRESTClient extends MarketoClient implements MarketoClientSer
 
     public static final String API_PATH_JSON_EXT = ".json";
 
-    public static final String API_PATTH_CUSTOMOBJECTS = "/v1/customobjects/";
+    public static final String API_PATH_CUSTOMOBJECTS = "/v1/customobjects/";
 
     public static final String API_PATH_URI_DELETE = "/delete.json";
 
@@ -1078,7 +1079,7 @@ public class MarketoRESTClient extends MarketoClient implements MarketoClientSer
     public MarketoRecordResult describeCustomObject(TMarketoInputProperties parameters) {
         String customObjectName = parameters.customObjectName.getValue();
         current_uri = new StringBuilder(basicPath)//
-                .append(API_PATTH_CUSTOMOBJECTS)//
+                .append(API_PATH_CUSTOMOBJECTS)//
                 .append(customObjectName)//
                 .append("/describe.json")//
                 .append(fmtParams(FIELD_ACCESS_TOKEN, accessToken, true));
@@ -1173,10 +1174,11 @@ public class MarketoRESTClient extends MarketoClient implements MarketoClientSer
             return (T) Double.valueOf(value.toString());
         case LONG:
             String clazz = field.getProp(SchemaConstants.JAVA_CLASS_FLAG);
-            if (clazz != null && clazz.equals(Date.class.getCanonicalName())) {
+            String pattr = field.getProp(SchemaConstants.TALEND_COLUMN_PATTERN);
+            if ((clazz != null && clazz.equals(Date.class.getCanonicalName())) || (pattr != null && !pattr.isEmpty())) {
                 Date dt = null;
                 try {
-                    dt = new SimpleDateFormat(field.getProp(SchemaConstants.TALEND_COLUMN_PATTERN)).parse(value.toString());
+                    dt = new SimpleDateFormat(pattr).parse(value.toString());
                     return (T) dt;
                 } catch (ParseException e) {
                     LOG.error("Error while parsing date : {} with pattern {}.", e.getMessage(),
@@ -1187,7 +1189,7 @@ public class MarketoRESTClient extends MarketoClient implements MarketoClientSer
             }
             break;
         default:
-            LOG.warn("Not managed -> type: {}, value: {}.", convSchema.getType(), value);
+            LOG.warn("Not managed -> type: {}, value: {} for field: {}.", convSchema.getType(), value, field);
             return (T) value;
         }
         return null;
@@ -1209,7 +1211,6 @@ public class MarketoRESTClient extends MarketoClient implements MarketoClientSer
     }
 
     public MarketoRecordResult executeGetRequest(Schema schema) throws MarketoException {
-
         try {
             URL url = new URL(current_uri.toString());
             HttpsURLConnection urlConn = (HttpsURLConnection) url.openConnection();
@@ -1316,22 +1317,24 @@ public class MarketoRESTClient extends MarketoClient implements MarketoClientSer
         String filterType = parameters.customObjectFilterType.getValue();
         String filterValues = parameters.customObjectFilterValues.getValue();
         // if fields is unset : marketoGuid, dedupeFields (defined in mkto), updatedAt, createdAt will be returned.
-        String fields = "";
+        List<String> fields = new ArrayList<>();
+        for (String f : parameters.getSchemaFields()) {
+            if (!f.equals(MarketoConstants.FIELD_MARKETO_GUID) && !f.equals(MarketoConstants.FIELD_SEQ))
+                fields.add(f);
+        }
         //
         int batchLimit = parameters.batchSize.getValue() > REST_API_BATCH_LIMIT ? REST_API_BATCH_LIMIT
                 : parameters.batchSize.getValue();
-        //
-        Schema schema = parameters.schemaInput.schema.getValue();
-        LOG.warn("schema = {}.", schema);
-        //
         current_uri = new StringBuilder(basicPath)//
-                .append(API_PATTH_CUSTOMOBJECTS)//
+                .append(API_PATH_CUSTOMOBJECTS)//
                 .append(customObjectName)//
                 .append(API_PATH_JSON_EXT)//
                 .append(fmtParams(FIELD_ACCESS_TOKEN, accessToken, true))//
                 .append(fmtParams("filterType", filterType))//
                 .append(fmtParams("filterValues", filterValues))//
                 .append(fmtParams(FIELD_BATCH_SIZE, batchLimit));
+        if (!fields.isEmpty())
+            current_uri.append(fmtParams(FIELD_FIELDS, csvString(fields.toArray())));
         if (offset != null)
             current_uri.append(fmtParams(FIELD_NEXT_PAGE_TOKEN, offset));
         // in body :
@@ -1339,7 +1342,6 @@ public class MarketoRESTClient extends MarketoClient implements MarketoClientSer
         // list of values. When using a compound key, the request must be sent as a JSON object, and each record must
         // include each of the fields in the compound key. Compound keys are determined by the contents of
         // 'dedupeFields' in the describe result for the object ,
-
         LOG.debug("getCustomObjects : {}.", current_uri);
         MarketoRecordResult mkto = new MarketoRecordResult();
         try {
@@ -1349,7 +1351,8 @@ public class MarketoRESTClient extends MarketoClient implements MarketoClientSer
             // seq (integer): Integer indicating the sequence of the record in response. This value is
             // correlated to the order of the records included in the request input. Seq should only be part of
             // responses and should not be submitted.
-            mkto = executeGetRequest(schema);
+            //
+            mkto = executeGetRequest(parameters.schemaInput.schema.getValue());
             LOG.debug("result = {}.", mkto);
         } catch (MarketoException e) {
             LOG.error("{}.", e);
@@ -1394,7 +1397,7 @@ public class MarketoRESTClient extends MarketoClient implements MarketoClientSer
         MarketoSyncResult mkto = new MarketoSyncResult();
 
         current_uri = new StringBuilder(basicPath)//
-                .append(API_PATTH_CUSTOMOBJECTS)//
+                .append(API_PATH_CUSTOMOBJECTS)//
                 .append(customObjectName)//
                 .append(API_PATH_JSON_EXT)//
                 .append(fmtParams(FIELD_ACCESS_TOKEN, accessToken, true));//
@@ -1463,9 +1466,9 @@ public class MarketoRESTClient extends MarketoClient implements MarketoClientSer
         /*
          * deleteBy : idField || dedupeFields.
          *
-         * Sample with describe smartphone : ... "idField": "marketoGUID", "dedupeFields": "[\"model\"]",...
+         * Sample with describe smartphone : ... "idField": "marketoGUID", "dedupeFields": "[\"model\"]".
          */
-        String deleteBy = parameters.customObjectDeleteBy.getValue();
+        String deleteBy = parameters.customObjectDeleteBy.getValue().name();
         //
         // input (Array[CustomObject]): List of input records
         JsonObject inputJson = new JsonObject();
@@ -1483,9 +1486,8 @@ public class MarketoRESTClient extends MarketoClient implements MarketoClientSer
         }
         inputJson.add(FIELD_INPUT, gson.toJsonTree(leadsObjects));
         //
-
         current_uri = new StringBuilder(basicPath)//
-                .append(API_PATTH_CUSTOMOBJECTS)//
+                .append(API_PATH_CUSTOMOBJECTS)//
                 .append(customObjectName)//
                 .append(API_PATH_URI_DELETE)//
                 .append(fmtParams(FIELD_ACCESS_TOKEN, accessToken, true));
@@ -1503,7 +1505,7 @@ public class MarketoRESTClient extends MarketoClient implements MarketoClientSer
                 mkto.setRecords(rs.getResult());
             } else {
                 mkto.setRecordCount(0);
-                mkto.setErrors(Arrays.asList(new MarketoError(REST, "")));
+                mkto.setErrors(Arrays.asList(new MarketoError(REST, "Could not delete CustomObject.")));
             }
         } catch (MarketoException e) {
             mkto.setSuccess(false);

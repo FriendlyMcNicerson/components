@@ -26,7 +26,7 @@ public class MarketoSourceOrSink implements SourceOrSink, MarketoSourceOrSinkSch
 
     protected MarketoClientService client;
 
-    protected static final String KEY_CONNECTION = "ConnectionProperties";
+    protected static final String KEY_CONNECTION_PROPERTIES = "connection";
 
     private transient static final Logger LOG = LoggerFactory.getLogger(MarketoSourceOrSink.class);
 
@@ -87,39 +87,17 @@ public class MarketoSourceOrSink implements SourceOrSink, MarketoSourceOrSinkSch
     public TMarketoConnectionProperties connect(RuntimeContainer container) {
         TMarketoConnectionProperties connProps = getConnectionProperties();
         String refComponentId = connProps.getReferencedComponentId();
-        TMarketoConnectionProperties sharedConn;
-        // Using another component's connection
-        if (refComponentId != null) {
-            // In a runtime container
-            if (container != null) {
-                sharedConn = (TMarketoConnectionProperties) container.getComponentData(refComponentId, KEY_CONNECTION);
-                if (sharedConn != null) {
-                    return sharedConn;
-                }
+        TMarketoConnectionProperties shared;
+        if (refComponentId != null) {// Using another component's connection
+            if (container != null) { // In a runtime container
+                shared = (TMarketoConnectionProperties) container.getComponentData(refComponentId, KEY_CONNECTION_PROPERTIES);
+                if (shared != null)
+                    return shared;
             }
-            // Design time
-            connProps = connProps.getReferencedConnectionProperties();
-            if (connProps == null)
-                LOG.warn("Referenced component: {} does not have properties set!", refComponentId);
+            connProps = connProps.getReferencedConnectionProperties(); // Design time
         }
-        //
         if (container != null) {
-            container.setComponentData(container.getCurrentComponentId(), KEY_CONNECTION, connProps);
-        }
-        return connProps;
-    }
-
-    public TMarketoConnectionProperties getEffectiveConnectionProperties(RuntimeContainer container) {
-        TMarketoConnectionProperties connProps = properties.getConnectionProperties();
-        String refComponentId = connProps.getReferencedComponentId();
-        // Using another component's connection
-        if (refComponentId != null) {
-            // In a runtime container
-            if (container != null) {
-                return (TMarketoConnectionProperties) container.getComponentData(refComponentId, KEY_CONNECTION);
-            }
-            // Design time
-            return connProps.getReferencedConnectionProperties();
+            container.setComponentData(container.getCurrentComponentId(), KEY_CONNECTION_PROPERTIES, connProps);
         }
         return connProps;
     }
@@ -131,9 +109,6 @@ public class MarketoSourceOrSink implements SourceOrSink, MarketoSourceOrSinkSch
     public MarketoClientService getClientService(RuntimeContainer container) throws IOException {
         if (client == null) {
             TMarketoConnectionProperties conn = connect(container);
-            if (conn == null) {
-                conn = getEffectiveConnectionProperties(container);
-            }
             try {
                 if (conn.apiMode.getValue().equals(APIMode.SOAP)) {
                     client = new MarketoSOAPClient(conn);
@@ -151,7 +126,6 @@ public class MarketoSourceOrSink implements SourceOrSink, MarketoSourceOrSinkSch
 
     @Override
     public Schema getSchemaForParams(ComponentProperties params) {
-        LOG.info("getSchemaForParams {}", params);
         return null;
     }
 

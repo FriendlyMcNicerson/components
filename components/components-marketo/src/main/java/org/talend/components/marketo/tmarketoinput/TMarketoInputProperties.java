@@ -13,6 +13,7 @@
 package org.talend.components.marketo.tmarketoinput;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.talend.components.marketo.tmarketoinput.TMarketoInputProperties.Operation.CustomObject;
 import static org.talend.daikon.properties.presentation.Widget.widget;
 import static org.talend.daikon.properties.property.PropertyFactory.newBoolean;
 import static org.talend.daikon.properties.property.PropertyFactory.newEnum;
@@ -33,15 +34,16 @@ import org.talend.components.api.component.ISchemaListener;
 import org.talend.components.api.component.PropertyPathConnector;
 import org.talend.components.marketo.MarketoComponentProperties;
 import org.talend.components.marketo.MarketoConstants;
-import org.talend.components.marketo.MarketoProvideConnectionProperties;
 import org.talend.components.marketo.helpers.IncludeExcludeTypesTable;
 import org.talend.components.marketo.helpers.MarketoColumnMappingsTable;
 import org.talend.components.marketo.tmarketoconnection.TMarketoConnectionProperties.APIMode;
+import org.talend.daikon.properties.ValidationResult;
+import org.talend.daikon.properties.ValidationResult.Result;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
 import org.talend.daikon.properties.property.Property;
 
-public class TMarketoInputProperties extends MarketoComponentProperties implements MarketoProvideConnectionProperties {
+public class TMarketoInputProperties extends MarketoComponentProperties {
 
     static final Logger LOG = getLogger(TMarketoInputProperties.class);
 
@@ -49,7 +51,8 @@ public class TMarketoInputProperties extends MarketoComponentProperties implemen
         getLead, // retrieves basic information of leads and lead activities in Marketo DB. getLead:
         getMultipleLeads, // retrieves lead records in batch.
         getLeadActivity, // retrieves the history of activity records for a single lead identified by the provided key.
-        getLeadChanges // checks the changes on Lead data in Marketo DB.
+        getLeadChanges, // checks the changes on Lead data in Marketo DB.
+        CustomObject // CO Operation
     }
 
     public enum LeadSelector {
@@ -83,7 +86,6 @@ public class TMarketoInputProperties extends MarketoComponentProperties implemen
         SFDCCONTACTID, // The Contact ID from SalesForce
         SFDCLEADOWNERID, // The Lead owner ID from SalesForce
         SFDCOPPTYID, // The Opportunity ID from SalesForce
-
     }
 
     public enum ListParam {
@@ -331,7 +333,6 @@ public class TMarketoInputProperties extends MarketoComponentProperties implemen
 
             @Override
             public void afterSchema() {
-                LOG.warn("afterSchema");
                 updateMappings();
             }
         });
@@ -361,9 +362,14 @@ public class TMarketoInputProperties extends MarketoComponentProperties implemen
 
         Form mainForm = getForm(Form.MAIN);
         mainForm.addRow(operation);
-        mainForm.addRow(widget(mappingInput).setWidgetType(Widget.TABLE_WIDGET_TYPE));
         // Custom Objects
-
+        mainForm.addColumn(customObjectAction);
+        mainForm.addRow(customObjectName);
+        mainForm.addRow(customObjectNames);
+        mainForm.addRow(customObjectFilterType);
+        mainForm.addColumn(customObjectFilterValues);
+        //
+        mainForm.addRow(widget(mappingInput).setWidgetType(Widget.TABLE_WIDGET_TYPE));
         // leadSelector
         mainForm.addRow(leadSelectorSOAP);
         mainForm.addRow(leadSelectorREST);
@@ -397,13 +403,7 @@ public class TMarketoInputProperties extends MarketoComponentProperties implemen
     public void refreshLayout(Form form) {
         super.refreshLayout(form);
 
-        // schemaInput.refreshLayout(schemaInput.getForm(Form.MAIN));
-        // schemaInput.refreshLayout(schemaInput.getForm(Form.REFERENCE));
-        // mappingInput.refreshLayout(mappingInput.getForm(Form.MAIN));
-
         boolean useSOAP = connection.apiMode.getValue().equals(APIMode.SOAP);
-        //
-
         //
         if (form.getName().equals(Form.MAIN)) {
             // first hide everything
@@ -426,9 +426,23 @@ public class TMarketoInputProperties extends MarketoComponentProperties implemen
             form.getWidget(oldestCreateDate.getName()).setVisible(false);
             form.getWidget(latestCreateDate.getName()).setVisible(false);
             form.getWidget(batchSize.getName()).setVisible(false);
+            // custom objects
+            form.getWidget(customObjectAction.getName()).setVisible(false);
+            form.getWidget(customObjectName.getName()).setVisible(false);
+            form.getWidget(customObjectNames.getName()).setVisible(false);
+            form.getWidget(customObjectFilterType.getName()).setVisible(false);
+            form.getWidget(customObjectFilterValues.getName()).setVisible(false);
             //
             // enable widgets according params
             //
+            if (useSOAP) {
+                operation.setPossibleValues(Operation.getLead, Operation.getMultipleLeads, Operation.getLeadActivity,
+                        Operation.getLeadChanges);
+            } else {
+                operation.setPossibleValues(Operation.values());
+            }
+            //
+            form.getWidget(mappingInput.getName()).setVisible(true);
             // getLead
             if (operation.getValue().equals(Operation.getLead)) {
                 form.getWidget(leadKeyValue.getName()).setVisible(true);
@@ -499,11 +513,41 @@ public class TMarketoInputProperties extends MarketoComponentProperties implemen
                 }
                 form.getWidget(batchSize.getName()).setVisible(true);
             }
+            // Custom Objects
+            if (operation.getValue().equals(CustomObject)) {
+                form.getWidget(mappingInput.getName()).setVisible(false); // don't need mappings for CO.
+                form.getWidget(customObjectAction.getName()).setVisible(true);
+                switch (customObjectAction.getValue()) {
+                case describe:
+                    form.getWidget(customObjectName.getName()).setVisible(true);
+                    break;
+                case list:
+                    form.getWidget(customObjectNames.getName()).setVisible(true);
+                    break;
+                case get:
+                    form.getWidget(customObjectName.getName()).setVisible(true);
+                    form.getWidget(customObjectFilterType.getName()).setVisible(true);
+                    form.getWidget(customObjectFilterValues.getName()).setVisible(true);
+                    form.getWidget(batchSize.getName()).setVisible(true);
+                    break;
+                }
+            }
         }
     }
 
+    public ValidationResult validateOperation() {
+        if (connection.apiMode.getValue().equals(APIMode.SOAP)) {
+            if (operation.getValue().equals(CustomObject)) {
+                ValidationResult vr = new ValidationResult();
+                vr.setStatus(Result.ERROR);
+                vr.setMessage("CustomObjects not managed in SOAP API!");
+                return vr;
+            }
+        }
+        return ValidationResult.OK;
+    }
+
     public void updateMappings() {
-        LOG.warn("[updateMappings] schema : {}", schemaInput.schema.getValue().getName());
         List<String> fld = getSchemaFields();
         mappingInput.schemaColumnName.setPossibleValues(fld);
         mappingInput.schemaColumnName.setValue(fld);
@@ -515,7 +559,6 @@ public class TMarketoInputProperties extends MarketoComponentProperties implemen
     }
 
     public void updateSchemaRelated() {
-        LOG.warn("[updateSchemaRelated] 1. schema : {}", schemaInput.schema.getValue().getName());
         Schema s = null;
         if (connection.apiMode.getValue().equals(APIMode.SOAP)) {
             switch (operation.getValue()) {
@@ -542,16 +585,30 @@ public class TMarketoInputProperties extends MarketoComponentProperties implemen
             case getLeadChanges:
                 s = MarketoConstants.getRESTSchemaForGetLeadChanges();
                 break;
+            case CustomObject:
+                switch (customObjectAction.getValue()) {
+                case describe:
+                case list:
+                    s = MarketoConstants.getCustomObjectDescribeSchema();
+                    break;
+                case get:
+                    s = MarketoConstants.getCustomObjectRecordSchema();
+                    break;
+                }
+                break;
             }
         }
         schemaInput.schema.setValue(s);
-        LOG.warn("[updateSchemaRelated] 2. schema : {}", schemaInput.schema.getValue().getName());
         updateMappings();
     }
 
     public void afterOperation() {
         updateSchemaRelated();
         refreshLayout(getForm(Form.MAIN));
+    }
+
+    public void afterCustomObjectAction() {
+        afterOperation();
     }
 
     public void afterLeadSelectorSOAP() {

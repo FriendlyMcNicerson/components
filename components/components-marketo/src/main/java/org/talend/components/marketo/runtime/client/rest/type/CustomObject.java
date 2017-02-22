@@ -12,17 +12,14 @@
 // ============================================================================
 package org.talend.components.marketo.runtime.client.rest.type;
 
-import static org.apache.avro.SchemaBuilder.record;
-
 import java.util.Arrays;
 import java.util.Date;
 
-import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.IndexedRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.talend.daikon.avro.SchemaConstants;
+import org.talend.components.marketo.MarketoConstants;
 
 import com.google.gson.Gson;
 
@@ -288,40 +285,9 @@ public class CustomObject {
         return sb.toString();
     }
 
-    /**
-     * {"requestId":"1495b#15a46590a99","result":[{"name":"smartphone_c","displayName":"Smartphone","description":"Smartphone
-     * possessed by lead","createdAt":"2017-02-15T16:06:35Z","updatedAt":"2017-02-15T16:06:36Z",
-     * "idField":"marketoGUID","dedupeFields":["model"],"searchableFields":[["model"],["marketoGUID"],["customerId"]],
-     * "relationships":[{"field":"customerId","type":"child","relatedTo":{"name":"Lead","field":"Id"}}],"fields":[{"name":"createdAt","displayName":"Created
-     * At","dataType":"datetime","updateable":false},{"name":"marketoGUID","displayName":"Marketo
-     * GUID","dataType":"string","length":36,"updateable":false},{"name":"updatedAt","displayName":"Updated
-     * At","dataType":"datetime","updateable":false},{"name":"acquiredAt","displayName":"Acquired
-     * at","dataType":"date","updateable":true},{"name":"brand","displayName":"Brand","dataType":"string","length":255,"updateable":true},{"name":"customerId","displayName":"Customer
-     * Id","dataType":"integer","updateable":true},{"name":"model","displayName":"Model","dataType":"string","length":255,"updateable":true}]}],"success":true}
-     * 
-     */
-
-    public static Schema getSchema() {
-        return record("CustomObject").fields()//
-                .name("name").prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true").type().stringType().noDefault()//
-                .name("displayName").type().nullable().stringType().noDefault()//
-                .name("description").type().nullable().stringType().noDefault()//
-                .name("createdAt").prop(SchemaConstants.TALEND_COLUMN_PATTERN, "yyyy-MM-ddTHH:mm:ssZ").type().nullable()
-                .longType().noDefault()//
-                .name("updatedAt").prop(SchemaConstants.TALEND_COLUMN_PATTERN, "yyyy-MM-ddTHH:mm:ssZ").type().nullable()
-                .longType().noDefault()// .type.Date//
-                .name("idField").type().nullable().stringType().noDefault()//
-                .name("dedupeFields").type().nullable().stringType().noDefault()// String []
-                .name("searchableFields").type().nullable().stringType().noDefault()// String [] []
-                .name("fields").type().nullable().stringType().noDefault()// ObjectField[]
-                .name("relationships").type().nullable().stringType().noDefault()// ObjectRelation[]
-                //
-                .endRecord();
-    }
-
     public IndexedRecord toIndexedRecord() {
         Gson gson = new Gson();
-        IndexedRecord record = new GenericData.Record(getSchema());
+        IndexedRecord record = new GenericData.Record(MarketoConstants.getCustomObjectDescribeSchema());
         record.put(0, getName());
         record.put(1, getDisplayName());
         record.put(2, getDescription());

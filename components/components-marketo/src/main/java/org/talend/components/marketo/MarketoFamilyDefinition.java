@@ -12,8 +12,6 @@
 // ============================================================================
 package org.talend.components.marketo;
 
-import aQute.bnd.annotation.component.Component;
-
 import org.talend.components.api.AbstractComponentFamilyDefinition;
 import org.talend.components.api.ComponentInstaller;
 import org.talend.components.api.Constants;
@@ -21,6 +19,10 @@ import org.talend.components.marketo.tmarketoconnection.TMarketoConnectionDefini
 import org.talend.components.marketo.tmarketoinput.TMarketoInputDefinition;
 import org.talend.components.marketo.tmarketolistoperation.TMarketoListOperationDefinition;
 import org.talend.components.marketo.tmarketooutput.TMarketoOutputDefinition;
+import org.talend.components.marketo.wizard.MarketoConnectionEditWizardDefinition;
+import org.talend.components.marketo.wizard.MarketoConnectionWizardDefinition;
+
+import aQute.bnd.annotation.component.Component;
 
 @Component(name = Constants.COMPONENT_INSTALLER_PREFIX + MarketoFamilyDefinition.NAME, provide = ComponentInstaller.class)
 public class MarketoFamilyDefinition extends AbstractComponentFamilyDefinition implements ComponentInstaller {
@@ -28,9 +30,14 @@ public class MarketoFamilyDefinition extends AbstractComponentFamilyDefinition i
     public static final String NAME = "Marketo";
 
     public MarketoFamilyDefinition() {
-        super(NAME, new TMarketoConnectionDefinition(), new TMarketoInputDefinition(), new TMarketoListOperationDefinition(),
-                new TMarketoOutputDefinition());
+        super(NAME, new TMarketoConnectionDefinition(), //
+                new TMarketoInputDefinition(), //
+                new TMarketoListOperationDefinition(), //
+                new TMarketoOutputDefinition(), //
+                new MarketoConnectionWizardDefinition(), //
+                new MarketoConnectionEditWizardDefinition());
     }
+
     @Override
     public void install(ComponentFrameworkContext ctx) {
         ctx.registerComponentFamilyDefinition(this);

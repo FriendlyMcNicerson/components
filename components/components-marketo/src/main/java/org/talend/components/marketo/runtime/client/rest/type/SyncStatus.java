@@ -73,6 +73,17 @@ public class SyncStatus {
         this.seq = seq;
     }
 
+    public String getAvailableReason() {
+        if (reasons == null)
+            return "";
+        Map<String, String> m = reasons.get(0);
+        if (m == null)
+            return "";
+        String c = m.get("code");
+        String msg = m.get("message");
+        return String.format("[%s] %s.", c, msg);
+    }
+
     @Override
     public String toString() {
         final StringBuffer sb = new StringBuffer("SyncStatus{");

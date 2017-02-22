@@ -35,13 +35,13 @@ import org.slf4j.LoggerFactory;
 import org.talend.components.marketo.MarketoConstants;
 import org.talend.components.marketo.runtime.MarketoBaseTestIT;
 import org.talend.components.marketo.runtime.MarketoSource;
-import org.talend.components.marketo.runtime.client.rest.type.CustomObject;
 import org.talend.components.marketo.runtime.client.rest.type.SyncStatus;
 import org.talend.components.marketo.runtime.client.type.MarketoError;
 import org.talend.components.marketo.runtime.client.type.MarketoRecordResult;
 import org.talend.components.marketo.runtime.client.type.MarketoSyncResult;
 import org.talend.components.marketo.tmarketoinput.TMarketoInputProperties;
 import org.talend.components.marketo.tmarketooutput.TMarketoOutputProperties;
+import org.talend.components.marketo.tmarketooutput.TMarketoOutputProperties.CustomObjectDeleteBy;
 import org.talend.components.marketo.tmarketooutput.TMarketoOutputProperties.CustomObjectSyncAction;
 
 public class MarketoClientCustomObjectsTestIT extends MarketoBaseTestIT {
@@ -130,7 +130,7 @@ public class MarketoClientCustomObjectsTestIT extends MarketoBaseTestIT {
      *
      */
     public void checkCustomObject(IndexedRecord r, Boolean isDescribe) {
-        Schema s = CustomObject.getSchema();
+        Schema s = MarketoConstants.getCustomObjectDescribeSchema();
         assertNotNull(r.get(s.getField("name").pos()));
         assertNotNull(r.get(s.getField("createdAt").pos()));
         assertEquals("java.util.Date", r.get(s.getField("createdAt").pos()).getClass().getCanonicalName());
@@ -186,12 +186,12 @@ public class MarketoClientCustomObjectsTestIT extends MarketoBaseTestIT {
 
     @Test
     public void testGetCustomObjects() throws Exception {
+        MarketoSyncResult rs = createCustomObjectRecords();
         MarketoSource source = new MarketoSource();
         source.initialize(null, irProps);
         MarketoRESTClient client = (MarketoRESTClient) source.getClientService(null);
         irProps.customObjectName.setValue(TEST_CO_NAME_SMARTPHONE);
-        irProps.customObjectFilterType.setValue(FIELD_CO_SMARTPHONE_MODEL); // cannot search by brand, must be a dedupe
-                                                                            // field.
+        irProps.customObjectFilterType.setValue(FIELD_CO_SMARTPHONE_MODEL);
         irProps.customObjectFilterValues.setValue(MarketoRESTClient.csvString(TEST_SMARTPHONE_MODELS));
         irProps.batchSize.setValue(500);
         irProps.schemaInput.schema.setValue(MarketoConstants.getCustomObjectRecordSchema());
@@ -226,14 +226,14 @@ public class MarketoClientCustomObjectsTestIT extends MarketoBaseTestIT {
 
     @Test
     public void testGetCustomObjectsPagination() throws Exception {
+        MarketoSyncResult rs = createCustomObjectRecords();
         MarketoSource source = new MarketoSource();
         source.initialize(null, irProps);
         MarketoRESTClient client = (MarketoRESTClient) source.getClientService(null);
         irProps.customObjectName.setValue(TEST_CO_NAME_SMARTPHONE);
         irProps.batchSize.setValue(1);
         irProps.schemaInput.schema.setValue(MarketoConstants.getCustomObjectRecordSchema());
-        irProps.customObjectFilterType.setValue(FIELD_CO_SMARTPHONE_MODEL); // cannot search by brand, must be a dedupe
-                                                                            // field.
+        irProps.customObjectFilterType.setValue(FIELD_CO_SMARTPHONE_MODEL);
         irProps.customObjectFilterValues.setValue(MarketoRESTClient.csvString(TEST_SMARTPHONE_MODELS));
         MarketoRecordResult result = client.getCustomObjects(irProps, null);
         assertNotNull(result.getRecords());
@@ -336,7 +336,7 @@ public class MarketoClientCustomObjectsTestIT extends MarketoBaseTestIT {
             records.add(r1);
         }
         MarketoSource source = new MarketoSource();
-        oprops.customObjectDeleteBy.setValue("dedupeFields");
+        oprops.customObjectDeleteBy.setValue(CustomObjectDeleteBy.dedupeFields);
         source.initialize(null, oprops);
         MarketoRESTClient client = (MarketoRESTClient) source.getClientService(null);
         rs = client.deleteCustomObjects(oprops, records);
@@ -372,7 +372,7 @@ public class MarketoClientCustomObjectsTestIT extends MarketoBaseTestIT {
             records.add(r1);
         }
         MarketoSource source = new MarketoSource();
-        oprops.customObjectDeleteBy.setValue("idField");
+        oprops.customObjectDeleteBy.setValue(CustomObjectDeleteBy.idField);
         source.initialize(null, oprops);
         MarketoRESTClient client = (MarketoRESTClient) source.getClientService(null);
         rs = client.deleteCustomObjects(oprops, records);

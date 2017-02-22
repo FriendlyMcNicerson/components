@@ -25,6 +25,7 @@ import org.talend.components.api.component.runtime.AbstractBoundedReader;
 import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.marketo.runtime.client.MarketoClientService;
+import org.talend.components.marketo.runtime.client.MarketoRESTClient;
 import org.talend.components.marketo.runtime.client.type.MarketoRecordResult;
 import org.talend.components.marketo.tmarketoinput.TMarketoInputProperties;
 
@@ -60,18 +61,31 @@ public class MarketoInputReader extends AbstractBoundedReader<IndexedRecord> {
         Boolean startable = false;
         client = source.getClientService(null);
         switch (properties.operation.getValue()) {
-            case getLead :
-                mktoResult = client.getLead(properties, null);
+        case getLead:
+            mktoResult = client.getLead(properties, null);
+            break;
+        case getMultipleLeads:
+            mktoResult = client.getMultipleLeads(properties, null);
+            break;
+        case getLeadActivity:
+            mktoResult = client.getLeadActivity(properties, null);
+            break;
+        case getLeadChanges:
+            mktoResult = client.getLeadChanges(properties, null);
+            break;
+        case CustomObject:
+            switch (properties.customObjectAction.getValue()) {
+            case describe:
+                mktoResult = ((MarketoRESTClient) client).describeCustomObject(properties);
                 break;
-            case getMultipleLeads :
-                mktoResult = client.getMultipleLeads(properties, null);
+            case list:
+                mktoResult = ((MarketoRESTClient) client).listCustomObjects(properties);
                 break;
-            case getLeadActivity :
-                mktoResult = client.getLeadActivity(properties, null);
+            case get:
+                mktoResult = ((MarketoRESTClient) client).getCustomObjects(properties, null);
                 break;
-            case getLeadChanges :
-                mktoResult = client.getLeadChanges(properties, null);
-                break;
+            }
+            break;
         }
         startable = mktoResult.getRecordCount() > 0;
         apiCalls++;
@@ -94,18 +108,31 @@ public class MarketoInputReader extends AbstractBoundedReader<IndexedRecord> {
         }
         // fetch more data
         switch (properties.operation.getValue()) {
-            case getLead :
-                mktoResult = client.getLead(properties, mktoResult.getStreamPosition());
+        case getLead:
+            mktoResult = client.getLead(properties, mktoResult.getStreamPosition());
+            break;
+        case getMultipleLeads:
+            mktoResult = client.getMultipleLeads(properties, mktoResult.getStreamPosition());
+            break;
+        case getLeadActivity:
+            mktoResult = client.getLeadActivity(properties, mktoResult.getStreamPosition());
+            break;
+        case getLeadChanges:
+            mktoResult = client.getLeadChanges(properties, mktoResult.getStreamPosition());
+            break;
+        case CustomObject:
+            switch (properties.customObjectAction.getValue()) {
+            case describe:
+                mktoResult = ((MarketoRESTClient) client).describeCustomObject(properties);
                 break;
-            case getMultipleLeads :
-                mktoResult = client.getMultipleLeads(properties, mktoResult.getStreamPosition());
+            case list:
+                mktoResult = ((MarketoRESTClient) client).listCustomObjects(properties);
                 break;
-            case getLeadActivity :
-                mktoResult = client.getLeadActivity(properties, mktoResult.getStreamPosition());
+            case get:
+                mktoResult = ((MarketoRESTClient) client).getCustomObjects(properties, mktoResult.getStreamPosition());
                 break;
-            case getLeadChanges :
-                mktoResult = client.getLeadChanges(properties, mktoResult.getStreamPosition());
-                break;
+            }
+            break;
         }
         boolean advanceable = mktoResult.getRecordCount() > 0;
         apiCalls++;

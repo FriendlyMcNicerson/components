@@ -19,6 +19,7 @@ import static org.talend.components.marketo.MarketoConstants.FIELD_SUCCESS;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +34,8 @@ import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.component.runtime.WriteOperation;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.common.runtime.GenericAvroRegistry;
+import org.talend.components.marketo.MarketoConstants;
+import org.talend.components.marketo.runtime.client.MarketoRESTClient;
 import org.talend.components.marketo.runtime.client.rest.type.SyncStatus;
 import org.talend.components.marketo.runtime.client.type.MarketoError;
 import org.talend.components.marketo.runtime.client.type.MarketoSyncResult;
@@ -119,6 +122,13 @@ public class MarketoOutputWriter extends MarketoWriter {
                 recordsToProcess.clear();
             }
             break;
+        // TODO see if we manage the list...
+        case syncCustomObjects:
+            processResult(((MarketoRESTClient) client).syncCustomObjects(properties, Arrays.asList(inputRecord)));
+            break;
+        case deleteCustomObjects:
+            processResult(((MarketoRESTClient) client).deleteCustomObjects(properties, Arrays.asList(inputRecord)));
+            break;
         }
     }
 
@@ -187,6 +197,13 @@ public class MarketoOutputWriter extends MarketoWriter {
                 record.put(f.pos(), status.getStatus());
             } else if (f.name().equals(FIELD_ERROR_MSG)) {
                 record.put(f.pos(), status.getReasons());
+                // manage CO fields
+            } else if (f.name().equals(MarketoConstants.FIELD_MARKETO_GUID)) {
+                record.put(f.pos(), status.getMarketoGUID());
+            } else if (f.name().equals(MarketoConstants.FIELD_SEQ)) {
+                record.put(f.pos(), status.getSeq());
+            } else if (f.name().equals(MarketoConstants.FIELD_REASON)) {
+                record.put(f.pos(), status.getAvailableReason());
             } else {
                 LOG.debug("f = {}.", f);
                 record.put(flowSchema.getField(f.name()).pos(), inputRecord.get(inputSchema.getField(f.name()).pos()));

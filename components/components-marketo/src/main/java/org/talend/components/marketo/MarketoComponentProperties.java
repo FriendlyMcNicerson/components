@@ -34,8 +34,6 @@ import org.talend.daikon.properties.property.Property;
 public abstract class MarketoComponentProperties extends FixedConnectorsComponentProperties
         implements MarketoProvideConnectionProperties {
 
-    private static final long serialVersionUID = 5587867978797981L;
-
     public TMarketoConnectionProperties connection = new TMarketoConnectionProperties("connection");
 
     /**/
@@ -63,6 +61,8 @@ public abstract class MarketoComponentProperties extends FixedConnectorsComponen
     public Property<Integer> batchSize = newInteger("batchSize");
 
     public Property<Boolean> dieOnError = newBoolean("dieOnError");
+
+    private static final long serialVersionUID = 5587867978797981L;
 
     private transient static final Logger LOG = LoggerFactory.getLogger(MarketoComponentProperties.class);
 
@@ -137,6 +137,7 @@ public abstract class MarketoComponentProperties extends FixedConnectorsComponen
 
     @Override
     public TMarketoConnectionProperties getConnectionProperties() {
-        return connection;
+        LOG.warn("getConnectionProperties from {} for {}.", getClass().getName(), connection);
+        return connection.getConnectionProperties();
     }
 }

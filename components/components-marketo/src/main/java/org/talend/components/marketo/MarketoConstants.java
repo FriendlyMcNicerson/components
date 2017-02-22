@@ -49,6 +49,18 @@ public class MarketoConstants {
 
     public static final String FIELD_LIST_KEY_TYPE = "ListKeyType";
 
+    public static final String FIELD_MARKETO_GUID = "marketoGUID";
+
+    public static final String FIELD_SEQ = "seq";
+
+    public static final String FIELD_REASON = "reason";
+
+    public static final String FIELD_CREATED_AT = "createdAt";
+
+    public static final String FIELD_UPDATED_AT = "updatedAt";
+
+    public static final String FIELD_DEDUPE_FIELDS = "dedupeFields";
+
     /**
      * List Operations
      */
@@ -94,22 +106,65 @@ public class MarketoConstants {
     }
 
     /**
+     *
      * Custom Objects
+     *
      */
+    /**
+     * Sample :
+     * {"requestId":"1495b#15a46590a99","result":[{"name":"smartphone_c","displayName":"Smartphone","description":"Smartphone
+     * possessed by lead","createdAt":"2017-02-15T16:06:35Z","updatedAt":"2017-02-15T16:06:36Z",
+     * "idField":"marketoGUID","dedupeFields":["model"],"searchableFields":[["model"],["marketoGUID"],["customerId"]],
+     * "relationships":[{"field":"customerId","type":"child","relatedTo":{"name":"Lead","field":"Id"}}],"fields":[{"name":"createdAt","displayName":"Created
+     * At","dataType":"datetime","updateable":false},{"name":"marketoGUID","displayName":"Marketo
+     * GUID","dataType":"string","length":36,"updateable":false},{"name":"updatedAt","displayName":"Updated
+     * At","dataType":"datetime","updateable":false},{"name":"acquiredAt","displayName":"Acquired
+     * at","dataType":"date","updateable":true},{"name":"brand","displayName":"Brand","dataType":"string","length":255,"updateable":true},{"name":"customerId","displayName":"Customer
+     * Id","dataType":"integer","updateable":true},{"name":"model","displayName":"Model","dataType":"string","length":255,"updateable":true}]}],"success":true}
+     *
+     */
+    public static Schema getCustomObjectDescribeSchema() {
+        return record("CustomObject").fields()//
+                .name("name").prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true").type().stringType().noDefault()//
+                .name("displayName").type().nullable().stringType().noDefault()//
+                .name("description").type().nullable().stringType().noDefault()//
+                .name(FIELD_CREATED_AT)//
+                .prop(SchemaConstants.TALEND_COLUMN_PATTERN, "yyyy-MM-dd'T'HH:mm:ss'Z'")//
+                .prop(SchemaConstants.JAVA_CLASS_FLAG, Date.class.getCanonicalName()) //
+                .type(AvroUtils._date()).noDefault()//
+                .name(FIELD_UPDATED_AT)//
+                .prop(SchemaConstants.TALEND_COLUMN_PATTERN, "yyyy-MM-dd'T'HH:mm:ss'Z'")//
+                .prop(SchemaConstants.JAVA_CLASS_FLAG, Date.class.getCanonicalName()) //
+                .type(AvroUtils._date()).noDefault()//
+                .name("idField").type().nullable().stringType().noDefault()//
+                .name(FIELD_DEDUPE_FIELDS).type().nullable().stringType().noDefault()// String []
+                .name("searchableFields").type().nullable().stringType().noDefault()// String [] []
+                .name("fields").type().nullable().stringType().noDefault()// ObjectField[]
+                .name("relationships").type().nullable().stringType().noDefault()// ObjectRelation[]
+                //
+                .endRecord();
+    }
+
     public static Schema getCustomObjectRecordSchema() {
         return record("CustomObjectRecord").fields()//
-                .name("marketoGUID").prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true").type().stringType().noDefault()//
-                .name("seq").type().intType().noDefault()//
-                .name("createdAt") //
+                .name(FIELD_MARKETO_GUID).prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true").type().stringType().noDefault()//
+                .name(FIELD_SEQ).type().intType().noDefault()//
+                .name(FIELD_CREATED_AT) //
                 .prop(SchemaConstants.TALEND_COLUMN_PATTERN, "yyyy-MM-dd'T'HH:mm:ss'Z'")//
                 .prop(SchemaConstants.JAVA_CLASS_FLAG, Date.class.getCanonicalName()) //
-                .type().nullable().longType().noDefault()//
-                .name("updatedAt") //
+                .type(AvroUtils._date()).noDefault()//
+                .name(FIELD_UPDATED_AT) //
                 .prop(SchemaConstants.TALEND_COLUMN_PATTERN, "yyyy-MM-dd'T'HH:mm:ss'Z'")//
                 .prop(SchemaConstants.JAVA_CLASS_FLAG, Date.class.getCanonicalName()) //
-                .type().nullable().longType().noDefault()//
-                .name("fields").type().nullable().stringType().noDefault()// ObjectField[]
+                .type(AvroUtils._date()).noDefault()//
+                // .name(FIELD_DEDUPE_FIELDS).type().nullable().stringType().noDefault()//
                 //
+                .endRecord();
+    }
+
+    public static Schema getCustomObjectSyncSchema() {
+        return record("CustomObjectRecord").fields()//
+                .name(FIELD_MARKETO_GUID).prop(SchemaConstants.TALEND_COLUMN_IS_KEY, "true").type().stringType().noDefault()//
                 .endRecord();
     }
 
@@ -144,11 +199,11 @@ public class MarketoConstants {
                 .name("email").type().nullable().stringType().noDefault() //
                 .name("firstName").type().nullable().stringType().noDefault() //
                 .name("lastName").type().nullable().stringType().noDefault() //
-                .name("createdAt")//
+                .name(FIELD_CREATED_AT)//
                 .prop(SchemaConstants.TALEND_COLUMN_PATTERN, "yyyy-MM-dd'T'HH:mm:ss'Z'")//
                 .prop(SchemaConstants.JAVA_CLASS_FLAG, Date.class.getCanonicalName()) //
                 .type(AvroUtils._date()).noDefault()//
-                .name("updatedAt")//
+                .name(FIELD_UPDATED_AT)//
                 .prop(SchemaConstants.TALEND_COLUMN_PATTERN, "yyyy-MM-dd'T'HH:mm:ss'Z'")//
                 .prop(SchemaConstants.JAVA_CLASS_FLAG, Date.class.getCanonicalName()) //
                 .type(AvroUtils._date()).noDefault()//
@@ -247,4 +302,5 @@ public class MarketoConstants {
                 .type(AvroUtils._date()).noDefault()//
                 .endRecord();
     }
+
 }
