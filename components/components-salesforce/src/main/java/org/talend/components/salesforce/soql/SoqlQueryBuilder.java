@@ -52,11 +52,6 @@ public class SoqlQueryBuilder {
         this.entityName = entityName;
     }
 
-    public void init(Schema schema, String entityName) {
-        this.schema = schema;
-        this.entityName = entityName;
-    }
-
     /**
      * This method is used to build SOQL query.
      *
