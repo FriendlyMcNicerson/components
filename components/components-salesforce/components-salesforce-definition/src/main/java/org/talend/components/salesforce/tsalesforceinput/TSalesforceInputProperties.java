@@ -27,7 +27,7 @@ import org.talend.components.api.component.runtime.DependenciesReader;
 import org.talend.components.api.component.runtime.JarRuntimeInfo;
 import org.talend.components.common.ComponentConstants;
 import org.talend.components.salesforce.SalesforceConnectionModuleProperties;
-import org.talend.components.salesforce.runtime.SalesforceRuntimeSourceOrSink;
+import org.talend.components.salesforce.common.SalesforceRuntimeSourceOrSink;
 import org.talend.components.salesforce.schema.SalesforceSchemaHelper;
 import org.talend.daikon.properties.PresentationItem;
 import org.talend.daikon.properties.ValidationResult;

@@ -1,4 +1,4 @@
-package org.talend.components.salesforce.runtime;
+package org.talend.components.salesforce.common;
 
 import org.talend.daikon.properties.ValidationResult;
 

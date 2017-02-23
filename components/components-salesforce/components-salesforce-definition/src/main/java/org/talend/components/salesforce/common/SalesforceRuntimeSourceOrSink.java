@@ -10,7 +10,7 @@
 // 9 rue Pages 92150 Suresnes, France
 //
 // ============================================================================
-package org.talend.components.salesforce.runtime;
+package org.talend.components.salesforce.common;
 
 import org.talend.components.api.component.runtime.SourceOrSink;
 

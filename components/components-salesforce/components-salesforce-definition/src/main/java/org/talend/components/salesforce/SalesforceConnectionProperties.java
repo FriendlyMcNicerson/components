@@ -23,7 +23,7 @@ import org.talend.components.api.properties.ComponentPropertiesImpl;
 import org.talend.components.api.properties.ComponentReferenceProperties;
 import org.talend.components.common.ProxyProperties;
 import org.talend.components.common.oauth.OauthProperties;
-import org.talend.components.salesforce.runtime.SalesforceRuntimeSourceOrSink;
+import org.talend.components.salesforce.common.SalesforceRuntimeSourceOrSink;
 import org.talend.components.salesforce.tsalesforceconnection.TSalesforceConnectionDefinition;
 import org.talend.daikon.properties.PresentationItem;
 import org.talend.daikon.properties.ValidationResult;

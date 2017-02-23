@@ -36,6 +36,7 @@ import org.talend.components.common.runtime.ProxyPropertiesRuntimeHelper;
 import org.talend.components.salesforce.SalesforceConnectionProperties;
 import org.talend.components.salesforce.SalesforceDefinition;
 import org.talend.components.salesforce.SalesforceProvideConnectionProperties;
+import org.talend.components.salesforce.common.SalesforceRuntimeSourceOrSink;
 import org.talend.components.salesforce.connection.oauth.SalesforceOAuthConnection;
 import org.talend.components.salesforce.schema.SalesforceSchemaHelper;
 import org.talend.components.salesforce.soql.FieldDescription;
