@@ -12,7 +12,9 @@
 // ============================================================================
 package org.talend.components.marketo;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -33,7 +35,7 @@ public class MarketoFamilyDefinitionTest extends MarketoTestBase {
     public final void testMarketoFamilyDefinition() {
         assertNotNull(getDefinitionRegistry());
         assertEquals("Marketo", new MarketoFamilyDefinition().getName());
-        assertEquals(4, testComponentRegistry.getDefinitions().size());
+        assertEquals(6, testComponentRegistry.getDefinitions().size());
     }
 
     @Test

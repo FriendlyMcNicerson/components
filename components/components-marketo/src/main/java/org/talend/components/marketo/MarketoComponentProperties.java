@@ -137,7 +137,6 @@ public abstract class MarketoComponentProperties extends FixedConnectorsComponen
 
     @Override
     public TMarketoConnectionProperties getConnectionProperties() {
-        LOG.warn("getConnectionProperties from {} for {}.", getClass().getName(), connection);
         return connection.getConnectionProperties();
     }
 }

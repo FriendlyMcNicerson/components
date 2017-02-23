@@ -264,8 +264,6 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
 
     public Property<String> sinceDateTime = newString("sinceDateTime");
 
-    public Property<Integer> maxReturn = newInteger("maxReturn");
-
     public Property<Boolean> setIncludeTypes = newBoolean("setIncludeTypes");
 
     public IncludeExcludeTypesTable includeTypes = new IncludeExcludeTypesTable("includeTypes");
@@ -277,10 +275,6 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
     /**
      * Custom objects
      */
-
-    // describeCustomObject(TMarketoInputProperties parameters);
-    // listCustomObjects(TMarketoInputProperties parameters);
-    // getCustomObjects(TMarketoInputProperties parameters, String offset);
     public enum CustomObjectAction {
         describe,
         list,
@@ -327,8 +321,6 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
         leadSelectorREST.setPossibleValues(LeadSelector.LeadKeySelector, LeadSelector.StaticListSelector);
         leadSelectorREST.setValue(LeadSelector.LeadKeySelector);
 
-        schemaInput.schema.setValue(MarketoConstants.getRESTSchemaForGetLeadOrGetMultipleLeads());
-
         setSchemaListener(new ISchemaListener() {
 
             @Override
@@ -336,6 +328,8 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
                 updateMappings();
             }
         });
+        schemaInput.schema.setValue(MarketoConstants.getRESTSchemaForGetLeadOrGetMultipleLeads());
+        updateMappings();
 
         setIncludeTypes.setValue(false);
         includeTypes.type.setPossibleValues((Object[]) IncludeExcludeFieldsREST.values());
@@ -343,7 +337,6 @@ public class TMarketoInputProperties extends MarketoComponentProperties {
         excludeTypes.type.setPossibleValues((Object[]) IncludeExcludeFieldsREST.values());
         fieldList.setValue("");
         leadKeysSegmentSize.setValue(50);
-        maxReturn.setValue(100);
         sinceDateTime.setValue("yyyy-MM-dd HH:mm:ss Z");
         //
         // Custom Objects
