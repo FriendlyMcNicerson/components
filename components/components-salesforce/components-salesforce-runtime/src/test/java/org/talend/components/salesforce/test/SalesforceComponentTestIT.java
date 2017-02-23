@@ -258,6 +258,7 @@ public abstract class SalesforceComponentTestIT extends SalesforceTestBase {
         assertEquals("Cloud/Salesforce", cd.getFamilies()[1]);
     }
 
+    @Ignore
     @Test
     public void testWizard() throws Throwable {
         final List<RepoProps> repoProps = new ArrayList<>();
@@ -508,6 +509,7 @@ public abstract class SalesforceComponentTestIT extends SalesforceTestBase {
         LOGGER.debug(moduleProps.getValidationResult().toString());
     }
 
+    @Ignore
     @Test
     public void testSchema() throws Throwable {
         testSchemaWithAPIVersion("34.0");
@@ -543,7 +545,8 @@ public abstract class SalesforceComponentTestIT extends SalesforceTestBase {
         LOGGER.debug("Module \"Account\" column size:" + schema.getFields().size());
         assertTrue(schema.getFields().size() > 40);
     }
-
+    
+    @Ignore
     @Test
     public void testOutputActionType() throws Throwable {
         ComponentDefinition definition = getComponentService().getComponentDefinition(TSalesforceOutputDefinition.COMPONENT_NAME);
