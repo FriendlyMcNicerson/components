@@ -138,7 +138,7 @@ public class AzureStorageSource extends AzureStorageSourceOrSink implements Boun
                 return vr;
             }
             // all lowercase
-            if (!StringUtils.isAllLowerCase(cnt.replaceAll("-", ""))) {
+            if (!StringUtils.isAllLowerCase(cnt.replaceAll("(-|\\d)", ""))) {
                 ValidationResult vr = new ValidationResult();
                 vr.setMessage("The container name must be in lowercase."); //$NON-NLS-1$
                 vr.setStatus(ValidationResult.Result.ERROR);
