@@ -14,7 +14,7 @@ public class SoqlQueryBuilderTest {
      * Checks {@link SoqlQueryBuilder#buildSoqlQuery()} returns SOQL query according to schema and entity name
      */
     @Test
-    public void simpleSoqlQueryTest() {
+    public void testBuildSoqlQuerySimple() {
         String expected = "\"SELECT Id, Name, BillingCity FROM Account\"";
 
         Schema schema = SchemaBuilder.record("Result").fields().name("Id").type().stringType().noDefault().name("Name").type()
@@ -30,7 +30,7 @@ public class SoqlQueryBuilderTest {
      * child-to-parent relationship
      */
     @Test
-    public void childToParentTest() {
+    public void testBuildSoqlQueryChildToParent() {
         String expected = "\"SELECT Name, Account.Name, Account.Owner.Name FROM Contact\"";
 
         Schema schema = SchemaBuilder.record("Result").fields().name("Name").type().stringType().noDefault().name("Account_Name")
@@ -46,7 +46,7 @@ public class SoqlQueryBuilderTest {
      * parent-to-child relationship
      */
     @Test
-    public void parentToChildTest() {
+    public void testBuildSoqlQueryParentToChild() {
         String expected = "\"SELECT Name, (SELECT LastName FROM Contacts) FROM Account\"";
 
         Schema schema = SchemaBuilder.record("Result").fields().name("Name").type().stringType().noDefault()
@@ -62,7 +62,7 @@ public class SoqlQueryBuilderTest {
      * parent-to-child relationship in case of three-level entities linking
      */
     @Test
-    public void parentToChildDepthTest() {
+    public void testBuildSoqlQueryParentToChildDepth() {
         String expected = "\"SELECT Name, (SELECT LastName, Account.Owner.Name FROM Contacts) FROM Account\"";
 
         Schema schema = SchemaBuilder.record("Result").fields().name("Name").type().stringType().noDefault()
@@ -79,7 +79,7 @@ public class SoqlQueryBuilderTest {
      * complex relationship
      */
     @Test
-    public void complexRelationshipTest() {
+    public void testBuildSoqlQueryComplexRelationship() {
         String expected = "\"SELECT Id, Name, (SELECT Quantity, ListPrice, PricebookEntry.UnitPrice, PricebookEntry.Name FROM OpportunityLineItems) FROM Opportunity\"";
 
         Schema schema = SchemaBuilder.record("Result").fields().name("Id").type().stringType().noDefault().name("Name").type()
@@ -98,7 +98,7 @@ public class SoqlQueryBuilderTest {
      * custom field
      */
     @Test
-    public void customFieldTest() {
+    public void testBuildSoqlQueryCustomField() {
         String expected = "\"SELECT Id, SLAExpirationDate__c FROM Account\"";
 
         Schema schema = SchemaBuilder.record("Result").fields().name("Id").type().stringType().noDefault()

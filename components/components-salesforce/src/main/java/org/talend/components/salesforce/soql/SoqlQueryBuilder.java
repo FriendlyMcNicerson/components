@@ -88,6 +88,14 @@ public class SoqlQueryBuilder {
         return resultQuery.append(DOUBLE_QUOTE).toString();
     }
 
+    /**
+     * This method is used to build SOQL subquery.
+     *
+     * @param inputStrings {@link java.util.List} is the list of child fields
+     * @param sb {@link java.lang.StringBuilder}
+     *
+     * @return {@link java.lang.String} This returns SOQL subquery.
+     */
     private void buildSubquery(List<String> inputStrings, StringBuilder sb) {
         sb.append(LEFT_PARENTHESIS).append(SELECT_STATEMENT).append(SPACE_SEPARATOR);
 
@@ -113,17 +121,29 @@ public class SoqlQueryBuilder {
     /**
      * Checks whether {code}fieldName{/code} is name of custom field. Custom fields end with "__c" string
      * 
-     * @param fieldName
-     * @return
+     * @param fieldName from {@link org.apache.avro.Schema}
+     * @return <code>true</code> when field is custom otherwise <code>false</code>
      */
     private boolean isCustomField(String fieldName) {
         return fieldName.endsWith(CUSTOM_FIELD_SUFFIX);
     }
 
+    /**
+     * Checks whether {code}fieldName{/code} is name of child field. Child fields contain "_records_" string
+     *
+     * @param fieldName from {@link org.apache.avro.Schema}
+     * @return <code>true</code> when field is child otherwise <code>false</code>
+     */
     private boolean isChildField(String fieldName) {
         return fieldName.contains(UNDERSCORE) && fieldName.contains(RECORDS);
     }
 
+    /**
+     * Checks whether {code}fieldName{/code} is name of parent field. Parent fields contain "_" string
+     *
+     * @param fieldName from {@link org.apache.avro.Schema}
+     * @return <code>true</code> when field is parent otherwise <code>false</code>
+     */
     private boolean isParentField(String fieldName) {
         return fieldName.contains(UNDERSCORE) && !fieldName.contains(RECORDS) && !isCustomField(fieldName);
     }
