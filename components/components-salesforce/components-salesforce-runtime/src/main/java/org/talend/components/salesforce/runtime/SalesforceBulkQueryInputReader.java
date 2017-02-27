@@ -44,10 +44,6 @@ public class SalesforceBulkQueryInputReader extends SalesforceReader<IndexedReco
         this.container = container;
     }
     
-    protected Schema getRuntimeSchema() throws IOException {
-        return ((SalesforceSource) getCurrentSource()).guessSchema(this.getQueryString(properties));
-    }
-
     @Override
     public boolean start() throws IOException {
         try {
@@ -103,7 +99,7 @@ public class SalesforceBulkQueryInputReader extends SalesforceReader<IndexedReco
         String queryText = getQueryString(properties);
         bulkRuntime = new SalesforceBulkRuntime((SalesforceSource) getCurrentSource(), container);
         try {
-            bulkRuntime.doBulkQuery(properties.module.moduleName.getStringValue(), queryText, 30);
+            bulkRuntime.doBulkQuery(getModuleName(), queryText, 30);
         } catch (AsyncApiException | InterruptedException | ConnectionException e) {
             throw new IOException(e);
         }

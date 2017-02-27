@@ -31,7 +31,7 @@ public class SalesforceDatasetProperties extends PropertiesImpl
 
     public Property<SourceType> sourceType = PropertyFactory.newEnum("sourceType", SourceType.class);
 
-    public Property<String> moduleName = PropertyFactory.newString("tableName");
+    public Property<String> moduleName = PropertyFactory.newString("moduleName");
 
     public Property<String> query = PropertyFactory.newString("query");
 

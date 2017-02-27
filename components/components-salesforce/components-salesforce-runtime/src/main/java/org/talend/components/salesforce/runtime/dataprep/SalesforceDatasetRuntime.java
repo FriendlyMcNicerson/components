@@ -23,7 +23,7 @@ import org.talend.components.common.dataset.runtime.DatasetRuntime;
 import org.talend.components.salesforce.SalesforceConnectionProperties;
 import org.talend.components.salesforce.dataset.SalesforceDatasetProperties;
 import org.talend.components.salesforce.datastore.SalesforceDatastoreProperties;
-import org.talend.components.salesforce.runtime.SalesforceInputReader;
+import org.talend.components.salesforce.runtime.SalesforceBulkQueryInputReader;
 import org.talend.components.salesforce.runtime.SalesforceSource;
 import org.talend.components.salesforce.runtime.SalesforceSourceOrSink;
 import org.talend.components.salesforce.tsalesforceinput.TSalesforceInputProperties;
@@ -66,11 +66,15 @@ public class SalesforceDatasetRuntime implements DatasetRuntime<SalesforceDatase
         componentProperties.userPassword.password.setValue(datastore.password.getValue());
         componentProperties.userPassword.securityKey.setValue(datastore.securityKey.getValue());
 
+        // TODO pass them from the global property file
+        componentProperties.endpoint.setValue(SalesforceConnectionProperties.URL);
+        componentProperties.timeout.setValue(60000);
+
         sss.initialize(container, componentProperties);
 
         try {
             // the UI will be a radio, need to adjust here
-            if (dataset.moduleName != null) {
+            if (dataset.moduleName.getValue() != null) {
                 return sss.getEndpointSchema(container, dataset.moduleName.getValue());
             } else {
                 return sss.guessSchema(dataset.query.getValue());
@@ -86,6 +90,7 @@ public class SalesforceDatasetRuntime implements DatasetRuntime<SalesforceDatase
 
         // create a SalesforceInputProperties as value passer model only, no other usage
         TSalesforceInputProperties componentProperties = new TSalesforceInputProperties("model");
+        componentProperties.setupProperties();
         SalesforceDatastoreProperties datastore = dataset.getDatastoreProperties();
 
         componentProperties.connection.bulkConnection.setValue(true);
@@ -95,13 +100,22 @@ public class SalesforceDatasetRuntime implements DatasetRuntime<SalesforceDatase
         componentProperties.connection.userPassword.password.setValue(datastore.password.getValue());
         componentProperties.connection.userPassword.securityKey.setValue(datastore.securityKey.getValue());
 
-        componentProperties.module.moduleName.setValue(dataset.moduleName.getValue());
-        componentProperties.query.setValue(dataset.query.getValue());
+        // TODO pass them from the global property file
+        componentProperties.connection.endpoint.setValue(SalesforceConnectionProperties.URL);
+        componentProperties.connection.timeout.setValue(60000);
+
+        if (dataset.moduleName.getValue() != null) {
+            componentProperties.manualQuery.setValue(false);
+            componentProperties.module.moduleName.setValue(dataset.moduleName.getValue());
+        } else {
+            componentProperties.manualQuery.setValue(true);
+            componentProperties.query.setValue(dataset.query.getValue());
+        }
 
         throwExceptionIfValidationResultIsError(ss.initialize(container, componentProperties));
         throwExceptionIfValidationResultIsError(ss.validate(container));
 
-        SalesforceInputReader reader = (SalesforceInputReader) ss.createReader(container);
+        SalesforceBulkQueryInputReader reader = (SalesforceBulkQueryInputReader) ss.createReader(container);
         ReaderDataProvider<IndexedRecord> readerDataProvider = new ReaderDataProvider<>(reader, limit, consumer);
         readerDataProvider.retrieveData();
     }

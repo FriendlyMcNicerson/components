@@ -21,6 +21,7 @@ import org.talend.components.api.component.runtime.AbstractBoundedReader;
 import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.salesforce.SalesforceConnectionModuleProperties;
+import org.talend.components.salesforce.soql.SoqlQuery;
 import org.talend.components.salesforce.tsalesforcebulkexec.TSalesforceBulkExecProperties;
 import org.talend.components.salesforce.tsalesforceinput.TSalesforceInputProperties;
 import org.talend.daikon.avro.AvroUtils;
@@ -79,20 +80,24 @@ public abstract class SalesforceReader<T> extends AbstractBoundedReader<T> {
         if (querySchema == null) {
             querySchema = properties.module.main.schema.getValue();
             if (AvroUtils.isSchemaEmpty(querySchema) || AvroUtils.isIncludeAllFields(querySchema)) {
-                querySchema = getRuntimeSchema();
+                if(properties instanceof TSalesforceInputProperties) {
+                    TSalesforceInputProperties inProperties = (TSalesforceInputProperties) properties;
+                    if(inProperties.manualQuery.getValue()) {
+                        querySchema = ((SalesforceSource) getCurrentSource()).guessSchema(inProperties.query.getValue());
+                        return querySchema;
+                    }
+                }
+                
+                String moduleName = null;
+                if (properties instanceof SalesforceConnectionModuleProperties) {
+                    moduleName = properties.module.moduleName.getStringValue();
+                }
+                querySchema = getCurrentSource().getEndpointSchema(container, moduleName);
             }
         }
         return querySchema;
     }
     
-    protected Schema getRuntimeSchema() throws IOException {
-        String moduleName = null;
-        if (properties instanceof SalesforceConnectionModuleProperties) {
-            moduleName = properties.module.moduleName.getStringValue();
-        }
-        return getCurrentSource().getEndpointSchema(container, moduleName);
-    }
-
     protected String getQueryString(SalesforceConnectionModuleProperties properties) throws IOException {
         String condition = null;
         if (properties instanceof TSalesforceInputProperties) {
@@ -119,6 +124,24 @@ public abstract class SalesforceReader<T> extends AbstractBoundedReader<T> {
             sb.append(condition);
         }
         return sb.toString();
+    }
+    
+    protected String getModuleName() {
+        String moduleName = properties.module.moduleName.getValue();
+        if(moduleName != null && !moduleName.isEmpty()) {
+            return moduleName;
+        }
+        
+        if (properties instanceof TSalesforceInputProperties) {
+            TSalesforceInputProperties inProperties = (TSalesforceInputProperties) properties;
+            if (inProperties.manualQuery.getValue()) {
+                SoqlQuery query = SoqlQuery.getInstance();
+                query.init(inProperties.query.getValue());
+                moduleName = query.getDrivingEntityName();
+            }
+        }
+        
+        return moduleName;
     }
 
     @Override

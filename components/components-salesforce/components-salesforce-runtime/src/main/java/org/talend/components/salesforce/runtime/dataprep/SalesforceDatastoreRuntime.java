@@ -39,6 +39,10 @@ public class SalesforceDatastoreRuntime implements DatastoreRuntime<SalesforceDa
         componentProperties.userPassword.userId.setValue(datastore.userId.getValue());
         componentProperties.userPassword.password.setValue(datastore.password.getValue());
         componentProperties.userPassword.securityKey.setValue(datastore.securityKey.getValue());
+        
+        //TODO pass them from the global property file
+        componentProperties.endpoint.setValue(SalesforceConnectionProperties.URL);
+        componentProperties.timeout.setValue(60000);
 
         jss.initialize(container, componentProperties);
         ValidationResult result = jss.validate(container);
