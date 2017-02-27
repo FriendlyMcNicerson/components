@@ -49,6 +49,7 @@ public class OsgiSalesfoceComponentTestIT extends SalesforceComponentTestIT {
 
     static public Option[] getSalesforcePaxExamOption() {
         return options(composite(ComponentsPaxExamOptions.getOptions()), //
+                linkBundle("commons-lang-commons-lang"),//
                 linkBundle("org.talend.components-components-common-bundle"), //
                 linkBundle("org.talend.components-components-common-tests").noStart(), //
                 linkBundle("org.talend.components-components-common-oauth-bundle"), //
