@@ -67,8 +67,14 @@ public class SalesforceDatasetRuntime implements DatasetRuntime<SalesforceDatase
         componentProperties.userPassword.securityKey.setValue(datastore.securityKey.getValue());
 
         sss.initialize(container, componentProperties);
+
         try {
-            return sss.getEndpointSchema(container, dataset.moduleName.getValue());
+            // the UI will be a radio, need to adjust here
+            if (dataset.moduleName != null) {
+                return sss.getEndpointSchema(container, dataset.moduleName.getValue());
+            } else {
+                return sss.guessSchema(dataset.query.getValue());
+            }
         } catch (IOException e) {
             throw new ComponentException(e);
         }
@@ -84,11 +90,11 @@ public class SalesforceDatasetRuntime implements DatasetRuntime<SalesforceDatase
 
         componentProperties.connection.bulkConnection.setValue(true);
         componentProperties.queryMode.setValue(TSalesforceInputProperties.QueryMode.Bulk);
-        
+
         componentProperties.connection.userPassword.userId.setValue(datastore.userId.getValue());
         componentProperties.connection.userPassword.password.setValue(datastore.password.getValue());
         componentProperties.connection.userPassword.securityKey.setValue(datastore.securityKey.getValue());
-        
+
         componentProperties.module.moduleName.setValue(dataset.moduleName.getValue());
         componentProperties.query.setValue(dataset.query.getValue());
 

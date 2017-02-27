@@ -78,15 +78,19 @@ public abstract class SalesforceReader<T> extends AbstractBoundedReader<T> {
     protected Schema getSchema() throws IOException {
         if (querySchema == null) {
             querySchema = properties.module.main.schema.getValue();
-            if (AvroUtils.isIncludeAllFields(querySchema)) {
-                String moduleName = null;
-                if (properties instanceof SalesforceConnectionModuleProperties) {
-                    moduleName = properties.module.moduleName.getStringValue();
-                }
-                querySchema = getCurrentSource().getEndpointSchema(container, moduleName);
+            if (AvroUtils.isSchemaEmpty(querySchema) || AvroUtils.isIncludeAllFields(querySchema)) {
+                querySchema = getRuntimeSchema();
             }
         }
         return querySchema;
+    }
+    
+    protected Schema getRuntimeSchema() throws IOException {
+        String moduleName = null;
+        if (properties instanceof SalesforceConnectionModuleProperties) {
+            moduleName = properties.module.moduleName.getStringValue();
+        }
+        return getCurrentSource().getEndpointSchema(container, moduleName);
     }
 
     protected String getQueryString(SalesforceConnectionModuleProperties properties) throws IOException {

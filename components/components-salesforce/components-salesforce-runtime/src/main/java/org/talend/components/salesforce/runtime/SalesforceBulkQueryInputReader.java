@@ -15,6 +15,7 @@ package org.talend.components.salesforce.runtime;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 
+import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,10 @@ public class SalesforceBulkQueryInputReader extends SalesforceReader<IndexedReco
         super(container, source);
         properties = props;
         this.container = container;
+    }
+    
+    protected Schema getRuntimeSchema() throws IOException {
+        return ((SalesforceSource) getCurrentSource()).guessSchema(this.getQueryString(properties));
     }
 
     @Override
