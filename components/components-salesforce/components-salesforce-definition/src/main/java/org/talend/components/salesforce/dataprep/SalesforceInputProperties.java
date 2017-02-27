@@ -27,6 +27,11 @@ import org.talend.daikon.properties.presentation.Form;
 public class SalesforceInputProperties extends FixedConnectorsComponentProperties
         implements IOProperties<SalesforceDatasetProperties> {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 8370922451458863132L;
+
     public ReferenceProperties<SalesforceDatasetProperties> dataset = new ReferenceProperties<>("dataset", SalesforceDatasetDefinition.NAME);
 
     protected transient PropertyPathConnector MAIN_CONNECTOR = new PropertyPathConnector(Connector.MAIN_NAME, "dataset.main");

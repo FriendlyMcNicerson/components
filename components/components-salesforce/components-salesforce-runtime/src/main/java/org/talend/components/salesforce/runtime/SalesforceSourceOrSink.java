@@ -88,7 +88,9 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
 
     @Override
     public ValidationResult initialize(RuntimeContainer container, ComponentProperties properties) {
-        this.properties = (SalesforceProvideConnectionProperties) properties;
+        if(properties instanceof SalesforceProvideConnectionProperties) {
+            this.properties = (SalesforceProvideConnectionProperties) properties;
+        }
         return ValidationResult.OK;
     }
 
