@@ -80,7 +80,7 @@ public class PubSubDatasetRuntime implements IPubSubDatasetRuntime {
         inputProperties.useMaxNumRecords.setValue(true);
         inputProperties.maxNumRecords.setValue(limit);
         inputProperties.useMaxReadTime.setValue(true);
-        inputProperties.maxReadTime.setValue(1000l);// 1s
+        inputProperties.maxReadTime.setValue(5000l);// 1s
         inputProperties.noACK.setValue(true);
         inputRuntime.initialize(null, inputProperties);
 

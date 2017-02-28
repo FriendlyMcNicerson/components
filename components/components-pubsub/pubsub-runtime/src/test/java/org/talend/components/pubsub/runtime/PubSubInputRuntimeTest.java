@@ -1,5 +1,6 @@
 package org.talend.components.pubsub.runtime;
 
+import static org.talend.components.pubsub.runtime.PubSubTestConstants.addSubscriptionForDataset;
 import static org.talend.components.pubsub.runtime.PubSubTestConstants.createDataset;
 import static org.talend.components.pubsub.runtime.PubSubTestConstants.createDatasetFromAvro;
 import static org.talend.components.pubsub.runtime.PubSubTestConstants.createDatasetFromCSV;
@@ -81,8 +82,9 @@ public class PubSubInputRuntimeTest {
         client.publish(topicName, messages);
 
         PubSubInputRuntime inputRuntime = new PubSubInputRuntime();
-        inputRuntime.initialize(null, createInput(createDatasetFromCSV(createDatastore(), topicName, fieldDelimited),
-                subscriptionName, null, maxRecords));
+        inputRuntime.initialize(null, createInput(
+                addSubscriptionForDataset(createDatasetFromCSV(createDatastore(), topicName, fieldDelimited), subscriptionName),
+                null, maxRecords));
 
         PCollection<IndexedRecord> readMessages = pipeline.apply(inputRuntime);
 
@@ -93,6 +95,7 @@ public class PubSubInputRuntimeTest {
         PAssert.that(readMessages).containsInAnyOrder(expected);
 
         pipeline.run().waitUntilFinish();
+
     }
 
     @Test
@@ -107,8 +110,11 @@ public class PubSubInputRuntimeTest {
         client.publish(topicName, messages);
 
         PubSubInputRuntime inputRuntime = new PubSubInputRuntime();
-        inputRuntime.initialize(null, createInput(createDatasetFromAvro(createDatastore(), topicName, Person.schema.toString()),
-                subscriptionName, null, maxRecords));
+        inputRuntime
+                .initialize(null,
+                        createInput(addSubscriptionForDataset(
+                                createDatasetFromAvro(createDatastore(), topicName, Person.schema.toString()), subscriptionName),
+                                null, maxRecords));
 
         PCollection<IndexedRecord> readMessages = pipeline.apply(inputRuntime);
 

@@ -39,6 +39,8 @@ public class PubSubDatasetProperties extends PropertiesImpl implements DatasetPr
 
     public Property<String> topic = PropertyFactory.newString("topic");
 
+    public Property<String> subscription = PropertyFactory.newString("subscription");
+
     // public SchemaProperties main = new SchemaProperties("main");
 
     public EnumProperty<ValueFormat> valueFormat = PropertyFactory.newEnum("valueFormat", ValueFormat.class);
@@ -60,6 +62,7 @@ public class PubSubDatasetProperties extends PropertiesImpl implements DatasetPr
         super.setupLayout();
         Form mainForm = new Form(this, Form.MAIN);
         mainForm.addRow(topic);
+        mainForm.addRow(subscription);
         mainForm.addRow(valueFormat);
         mainForm.addRow(fieldDelimiter);
         mainForm.addRow(avroSchema);
@@ -97,6 +100,23 @@ public class PubSubDatasetProperties extends PropertiesImpl implements DatasetPr
                 topics.add(new SimpleNamedThing(topicName, topicName));
             }
             topic.setPossibleValues(topics);
+            return ValidationResult.OK;
+        } catch (Exception e) {
+            return new ValidationResult(new ComponentException(e));
+        }
+    }
+
+    public ValidationResult beforeSubscription() {
+        PubSubDatasetDefinition definition = new PubSubDatasetDefinition();
+        RuntimeInfo runtimeInfo = definition.getRuntimeInfo(this);
+        try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClass(runtimeInfo, getClass().getClassLoader())) {
+            IPubSubDatasetRuntime runtime = (IPubSubDatasetRuntime) sandboxedInstance.getInstance();
+            runtime.initialize(null, this);
+            List<NamedThing> topics = new ArrayList<>();
+            for (String topicName : runtime.listSubscriptions()) {
+                topics.add(new SimpleNamedThing(topicName, topicName));
+            }
+            subscription.setPossibleValues(topics);
             return ValidationResult.OK;
         } catch (Exception e) {
             return new ValidationResult(new ComponentException(e));

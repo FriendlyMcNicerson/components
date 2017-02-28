@@ -61,7 +61,12 @@ public class PubSubTestConstants {
         return dataset;
     }
 
-    public static PubSubInputProperties createInput(PubSubDatasetProperties dataset, String subscription, Long maxTime,
+    public static PubSubDatasetProperties addSubscriptionForDataset(PubSubDatasetProperties dataset, String subscription) {
+        dataset.subscription.setValue(subscription);
+        return dataset;
+    }
+
+    public static PubSubInputProperties createInput(PubSubDatasetProperties dataset, Long maxTime,
             Integer maxNum) {
         PubSubInputProperties input = new PubSubInputProperties("input");
         input.init();
@@ -74,7 +79,6 @@ public class PubSubTestConstants {
             input.useMaxNumRecords.setValue(true);
             input.maxNumRecords.setValue(maxNum);
         }
-        input.subscription.setValue(subscription);
         return input;
     }
 

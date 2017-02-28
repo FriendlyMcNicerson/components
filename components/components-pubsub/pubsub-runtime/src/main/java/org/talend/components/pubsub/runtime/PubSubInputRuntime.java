@@ -14,6 +14,7 @@ package org.talend.components.pubsub.runtime;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumReader;
@@ -68,7 +69,7 @@ public class PubSubInputRuntime extends PTransform<PBegin, PCollection<IndexedRe
         PCollection<byte[]> pubsubMessages = null;
 
         if (properties.noACK.getValue()) {// getSample
-            pubsubMessages = in.apply(Create.of(properties.subscription.getValue())).apply(ParDo.of(new SampleFn(properties)));
+            pubsubMessages = in.apply(Create.of(dataset.subscription.getValue())).apply(ParDo.of(new SampleFn(properties)));
         } else {// normal
             GcpOptions gcpOptions = in.getPipeline().getOptions().as(GcpOptions.class);
             gcpOptions.setProject(datastore.projectName.getValue());
@@ -77,7 +78,7 @@ public class PubSubInputRuntime extends PTransform<PBegin, PCollection<IndexedRe
             }
 
             PubsubIO.Read<byte[]> pubsubRead = PubsubIO.<byte[]> read().subscription(String.format("projects/%s/subscriptions/%s",
-                    datastore.projectName.getValue(), properties.subscription.getValue()));
+                    datastore.projectName.getValue(), dataset.subscription.getValue()));
             if (properties.useMaxReadTime.getValue()) {
                 pubsubRead = pubsubRead.maxReadTime(new Duration(properties.maxReadTime.getValue()));
             }

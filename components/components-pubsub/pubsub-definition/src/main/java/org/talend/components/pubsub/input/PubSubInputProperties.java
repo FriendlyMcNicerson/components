@@ -44,8 +44,6 @@ public class PubSubInputProperties extends FixedConnectorsComponentProperties im
     public ReferenceProperties<PubSubDatasetProperties> datasetRef = new ReferenceProperties<>("datasetRef",
             PubSubDatasetDefinition.NAME);
 
-    public Property<String> subscription = PropertyFactory.newString("subscription");
-
     public Property<Boolean> useMaxReadTime = PropertyFactory.newBoolean("useMaxReadTime", false);
 
     // Max duration(Millions) from start receiving
@@ -79,7 +77,6 @@ public class PubSubInputProperties extends FixedConnectorsComponentProperties im
     public void setupLayout() {
         super.setupLayout();
         Form mainForm = new Form(this, Form.MAIN);
-        mainForm.addRow(subscription);
         mainForm.addRow(useMaxReadTime).addColumn(maxReadTime);
         mainForm.addRow(useMaxNumRecords).addColumn(maxNumRecords);
         mainForm.addRow(idLabel);
@@ -100,23 +97,6 @@ public class PubSubInputProperties extends FixedConnectorsComponentProperties im
         if (form.getName().equals(Form.MAIN)) {
             form.getWidget(maxReadTime).setVisible(useMaxReadTime);
             form.getWidget(maxNumRecords).setVisible(useMaxNumRecords);
-        }
-    }
-
-    public ValidationResult beforeSubscription() {
-        PubSubDatasetDefinition definition = new PubSubDatasetDefinition();
-        RuntimeInfo runtimeInfo = definition.getRuntimeInfo(getDatasetProperties());
-        try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClass(runtimeInfo, getClass().getClassLoader())) {
-            IPubSubDatasetRuntime runtime = (IPubSubDatasetRuntime) sandboxedInstance.getInstance();
-            runtime.initialize(null, getDatasetProperties());
-            List<NamedThing> topics = new ArrayList<>();
-            for (String topicName : runtime.listSubscriptions()) {
-                topics.add(new SimpleNamedThing(topicName, topicName));
-            }
-            subscription.setPossibleValues(topics);
-            return ValidationResult.OK;
-        } catch (Exception e) {
-            return new ValidationResult(new ComponentException(e));
         }
     }
 

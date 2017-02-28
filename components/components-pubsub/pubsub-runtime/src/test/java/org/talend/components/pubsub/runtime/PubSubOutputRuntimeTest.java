@@ -110,7 +110,6 @@ public class PubSubOutputRuntimeTest implements Serializable {
             }
         }
         assertThat(actual, containsInAnyOrder(expectedMessages.toArray()));
-
     }
 
 }
