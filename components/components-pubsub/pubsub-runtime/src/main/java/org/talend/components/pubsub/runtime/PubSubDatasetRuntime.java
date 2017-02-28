@@ -69,15 +69,19 @@ public class PubSubDatasetRuntime implements IPubSubDatasetRuntime {
 
     @Override
     public void getSample(int limit, Consumer<IndexedRecord> consumer) {
-        // TODO(bchen) because PubSub do not have offset, and the message will be deleted after
-        // read, so have to create a dumy reader which do not call ack to the server, or let the
-        // user have a duplicate subscription?
+        // Because PubSub do not have offset, and the message will be deleted after
+        // read, so have to create a dumy reader which do not call ack after read
 
         // Create an input runtime based on the properties.
         PubSubInputRuntime inputRuntime = new PubSubInputRuntime();
         PubSubInputProperties inputProperties = new PubSubInputProperties(null);
         inputProperties.init();
         inputProperties.setDatasetProperties(properties);
+        inputProperties.useMaxNumRecords.setValue(true);
+        inputProperties.maxNumRecords.setValue(limit);
+        inputProperties.useMaxReadTime.setValue(true);
+        inputProperties.maxReadTime.setValue(1000l);// 1s
+        inputProperties.noACK.setValue(true);
         inputRuntime.initialize(null, inputProperties);
 
         // Create a pipeline using the input component to get records.
@@ -95,27 +99,34 @@ public class PubSubDatasetRuntime implements IPubSubDatasetRuntime {
     }
 
     @Override
-    public Set<String> listTopics() {
-        PubSub pubsub = PubSubConnection.createClient(properties.getDatastoreProperties());
-        Page<Topic> topicPage = pubsub.listTopics(PubSub.ListOption.pageSize(100));
-        Iterator<Topic> topicIterator = topicPage.iterateAll();
-        Set<String> topicsName = new HashSet<>();
-        while (topicIterator.hasNext()) {
-            topicsName.add(topicIterator.next().getName());
+    public Set<String> listTopics() throws Exception {
+        try (PubSub pubsub = PubSubConnection.createClient(properties.getDatastoreProperties())) {
+            Page<Topic> topicPage = pubsub.listTopics(PubSub.ListOption.pageSize(100));
+            Iterator<Topic> topicIterator = topicPage.iterateAll();
+            Set<String> topicsName = new HashSet<>();
+            while (topicIterator.hasNext()) {
+                topicsName.add(topicIterator.next().getName());
+            }
+            return topicsName;
+        } catch (Exception e) {
+            throw e;
         }
-        return topicsName;
     }
 
     @Override
-    public Set<String> listSubscriptions() {
-        PubSub pubsub = PubSubConnection.createClient(properties.getDatastoreProperties());
-        Page<SubscriptionId> subscriptionIdPage = pubsub.listSubscriptions(properties.topic.getValue(),
-                PubSub.ListOption.pageSize(100));
-        Iterator<SubscriptionId> subscriptionIterator = subscriptionIdPage.iterateAll();
-        Set<String> subscriptionNames = new HashSet<>();
-        while (subscriptionIterator.hasNext()) {
-            subscriptionNames.add(subscriptionIterator.next().getSubscription());
+    public Set<String> listSubscriptions() throws Exception {
+        try (PubSub pubsub = PubSubConnection.createClient(properties.getDatastoreProperties())) {
+            Page<SubscriptionId> subscriptionIdPage = pubsub.listSubscriptions(properties.topic.getValue(),
+
+                    PubSub.ListOption.pageSize(100));
+            Iterator<SubscriptionId> subscriptionIterator = subscriptionIdPage.iterateAll();
+            Set<String> subscriptionNames = new HashSet<>();
+            while (subscriptionIterator.hasNext()) {
+                subscriptionNames.add(subscriptionIterator.next().getSubscription());
+            }
+            return subscriptionNames;
+        } catch (Exception e) {
+            throw e;
         }
-        return subscriptionNames;
     }
 }

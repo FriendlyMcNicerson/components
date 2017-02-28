@@ -12,24 +12,28 @@
 // ============================================================================
 package org.talend.components.pubsub.runtime;
 
+import java.io.IOException;
+import java.util.Iterator;
+
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.IndexedRecord;
+import org.apache.avro.io.BinaryDecoder;
+import org.apache.avro.io.DatumReader;
+import org.apache.avro.io.DecoderFactory;
 import org.apache.beam.sdk.coders.ByteArrayCoder;
 import org.apache.beam.sdk.coders.Coder;
-import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.io.PubsubIO;
 import org.apache.beam.sdk.options.GcpOptions;
+import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.PBegin;
 import org.apache.beam.sdk.values.PCollection;
-import org.apache.avro.io.BinaryDecoder;
-import org.apache.avro.io.DatumReader;
-import org.apache.avro.io.DecoderFactory;
 import org.joda.time.Duration;
+import org.joda.time.Instant;
 import org.talend.components.adapter.beam.coders.LazyAvroCoder;
 import org.talend.components.adapter.beam.transform.ConvertToIndexedRecord;
 import org.talend.components.api.component.runtime.RuntimableRuntime;
@@ -39,7 +43,8 @@ import org.talend.components.pubsub.PubSubDatastoreProperties;
 import org.talend.components.pubsub.input.PubSubInputProperties;
 import org.talend.daikon.properties.ValidationResult;
 
-import java.io.IOException;
+import com.google.cloud.pubsub.PubSub;
+import com.google.cloud.pubsub.ReceivedMessage;
 
 public class PubSubInputRuntime extends PTransform<PBegin, PCollection<IndexedRecord>>
         implements RuntimableRuntime<PubSubInputProperties> {
@@ -60,37 +65,40 @@ public class PubSubInputRuntime extends PTransform<PBegin, PCollection<IndexedRe
         PubSubDatasetProperties dataset = properties.getDatasetProperties();
         PubSubDatastoreProperties datastore = dataset.getDatastoreProperties();
 
-        GcpOptions gcpOptions = in.getPipeline().getOptions().as(GcpOptions.class);
-        gcpOptions.setProject(datastore.projectName.getValue());
-        if (datastore.serviceAccountFile.getValue() != null) {
-            gcpOptions.setGcpCredential(PubSubConnection.createCredentials(datastore));
-        }
+        PCollection<byte[]> pubsubMessages = null;
 
-        PubsubIO.Read<byte[]> pubsubRead = PubsubIO.<byte[]> read().subscription(String.format
-                ("projects/%s/subscriptions/%s",
-                datastore.projectName.getValue(), properties.subscription.getValue()));
-        if (properties.useMaxReadTime.getValue()) {
-            pubsubRead = pubsubRead.maxReadTime(new Duration(properties.maxReadTime.getValue()));
-        }
-        if (properties.useMaxNumRecords.getValue()) {
-            pubsubRead = pubsubRead.maxNumRecords(properties.maxNumRecords.getValue());
-        }
+        if (properties.noACK.getValue()) {// getSample
+            pubsubMessages = in.apply(Create.of(properties.subscription.getValue())).apply(ParDo.of(new SampleFn(properties)));
+        } else {// normal
+            GcpOptions gcpOptions = in.getPipeline().getOptions().as(GcpOptions.class);
+            gcpOptions.setProject(datastore.projectName.getValue());
+            if (datastore.serviceAccountFile.getValue() != null) {
+                gcpOptions.setGcpCredential(PubSubConnection.createCredentials(datastore));
+            }
 
-        if (properties.idLabel.getValue() != null && !"".equals(properties.idLabel.getValue())) {
-            pubsubRead.idLabel(properties.idLabel.getValue());
-        }
-        if (properties.timestampLabel.getValue() != null && !"".equals(properties.timestampLabel.getValue())) {
-            pubsubRead.timestampLabel(properties.timestampLabel.getValue());
-        }
+            PubsubIO.Read<byte[]> pubsubRead = PubsubIO.<byte[]> read().subscription(String.format("projects/%s/subscriptions/%s",
+                    datastore.projectName.getValue(), properties.subscription.getValue()));
+            if (properties.useMaxReadTime.getValue()) {
+                pubsubRead = pubsubRead.maxReadTime(new Duration(properties.maxReadTime.getValue()));
+            }
+            if (properties.useMaxNumRecords.getValue()) {
+                pubsubRead = pubsubRead.maxNumRecords(properties.maxNumRecords.getValue());
+            }
 
-        PCollection<byte[]> pubsubMessages = in.apply(pubsubRead.withCoder(ByteArrayCoder.of()));
+            if (properties.idLabel.getValue() != null && !"".equals(properties.idLabel.getValue())) {
+                pubsubRead.idLabel(properties.idLabel.getValue());
+            }
+            if (properties.timestampLabel.getValue() != null && !"".equals(properties.timestampLabel.getValue())) {
+                pubsubRead.timestampLabel(properties.timestampLabel.getValue());
+            }
+
+            pubsubMessages = in.apply(pubsubRead.withCoder(ByteArrayCoder.of()));
+        }
 
         switch (dataset.valueFormat.getValue()) {
         case AVRO: {
-            Schema schema = new Schema.Parser().parse(dataset.avroSchema
-                    .getValue());
-            return pubsubMessages.apply(ParDo.of(new ConvertToAvro(schema.toString()))).setCoder
-                    (getDefaultOutputCoder());
+            Schema schema = new Schema.Parser().parse(dataset.avroSchema.getValue());
+            return pubsubMessages.apply(ParDo.of(new ConvertToAvro(schema.toString()))).setCoder(getDefaultOutputCoder());
         }
         case CSV: {
             return (PCollection<IndexedRecord>) pubsubMessages
@@ -133,4 +141,59 @@ public class PubSubInputRuntime extends PTransform<PBegin, PCollection<IndexedRe
             c.output(record);
         }
     }
+
+    static class SampleFn extends DoFn<String, byte[]> {
+
+        private PubSubInputProperties spec;
+
+        private PubSub client;
+
+        private int maxNum = 100;
+
+        private long maxTime = 1000l;// 1 second
+
+        private SampleFn(PubSubInputProperties spec) {
+            this.spec = spec;
+        }
+
+        @Setup
+        public void setup() {
+            client = PubSubConnection.createClient(spec.getDatasetProperties().getDatastoreProperties());
+            if (spec.useMaxNumRecords.getValue()) {
+                maxNum = spec.maxNumRecords.getValue();
+            }
+            if (spec.useMaxReadTime.getValue()) {
+                maxTime = spec.maxReadTime.getValue();
+            }
+        }
+
+        @ProcessElement
+        public void processElement(ProcessContext context) {
+            int num = 0;
+            Instant endTime = Instant.now().plus(maxTime);
+            while (true) {
+                Iterator<ReceivedMessage> messageIterator = client.pull(context.element(), maxNum);
+                while (messageIterator.hasNext()) {
+                    ReceivedMessage next = messageIterator.next();
+                    context.output(next.getPayload().toByteArray());
+                    // no next.ack() for getSample, if call ack then the message will be removed
+                    num++;
+                    if (num >= maxNum) {
+                        break;
+                    }
+                }
+                if (Instant.now().isAfter(endTime)) {
+                    break;
+                }
+            }
+        }
+
+        @Teardown
+        public void teardown() throws Exception {
+            if (client != null) {
+                client.close();
+            }
+        }
+    }
+
 }

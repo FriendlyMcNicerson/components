@@ -59,6 +59,9 @@ public class PubSubInputProperties extends FixedConnectorsComponentProperties im
 
     public Property<String> timestampLabel = PropertyFactory.newString("timestampLabel");
 
+    // This property only used for getSample, the value only be changed internal
+    public Property<Boolean> noACK = PropertyFactory.newBoolean("noACK", false);
+
     protected transient PropertyPathConnector MAIN_CONNECTOR = new PropertyPathConnector(Connector.MAIN_NAME, "dataset.main");
 
     public PubSubInputProperties(String name) {

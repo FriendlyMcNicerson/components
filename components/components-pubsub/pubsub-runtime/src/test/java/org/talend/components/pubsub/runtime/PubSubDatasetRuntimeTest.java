@@ -33,10 +33,11 @@ public class PubSubDatasetRuntimeTest {
     }
 
     @AfterClass
-    public static void cleanTopics() {
+    public static void cleanTopics() throws Exception {
         for (String topic : topics) {
             client.deleteTopic(topic);
         }
+        client.close();
     }
 
     @Before
@@ -45,7 +46,7 @@ public class PubSubDatasetRuntimeTest {
     }
 
     @Test
-    public void listTopics() {
+    public void listTopics() throws Exception {
         runtime.initialize(null, createDataset(createDatastore(), null));
         Set<String> retrieveTopics = runtime.listTopics();
         for (String topic : topics) {

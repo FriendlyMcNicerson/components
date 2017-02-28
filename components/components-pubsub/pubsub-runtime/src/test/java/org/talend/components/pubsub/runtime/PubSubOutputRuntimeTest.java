@@ -62,9 +62,10 @@ public class PubSubOutputRuntimeTest implements Serializable {
     }
 
     @AfterClass
-    public static void cleanTopic() {
+    public static void cleanTopic() throws Exception {
         client.deleteTopic(topicName);
         client.deleteSubscription(subscriptionName);
+        client.close();
     }
 
     @Before

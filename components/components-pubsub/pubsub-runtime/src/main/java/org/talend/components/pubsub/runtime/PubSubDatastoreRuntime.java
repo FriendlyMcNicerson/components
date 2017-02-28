@@ -20,7 +20,6 @@ import org.talend.components.pubsub.PubSubDatastoreProperties;
 import org.talend.daikon.properties.ValidationResult;
 
 import com.google.cloud.pubsub.PubSub;
-import com.google.cloud.pubsub.PubSubException;
 
 public class PubSubDatastoreRuntime implements DatastoreRuntime<PubSubDatastoreProperties> {
 
@@ -37,11 +36,10 @@ public class PubSubDatastoreRuntime implements DatastoreRuntime<PubSubDatastoreP
 
     @Override
     public Iterable<ValidationResult> doHealthChecks(RuntimeContainer container) {
-        PubSub pubsub = PubSubConnection.createClient(properties);
-        try {
+        try (PubSub pubsub = PubSubConnection.createClient(properties)) {
             pubsub.listTopics(PubSub.ListOption.pageSize(1));
             return Arrays.asList(ValidationResult.OK);
-        } catch (PubSubException pubsubException) {
+        } catch (Exception pubsubException) {
             return Arrays.asList(
                     new ValidationResult().setStatus(ValidationResult.Result.ERROR).setMessage(pubsubException.getMessage()));
         }
