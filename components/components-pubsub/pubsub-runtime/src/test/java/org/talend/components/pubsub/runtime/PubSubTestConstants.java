@@ -16,6 +16,7 @@ package org.talend.components.pubsub.runtime;
 import org.talend.components.pubsub.PubSubDatasetProperties;
 import org.talend.components.pubsub.PubSubDatastoreProperties;
 import org.talend.components.pubsub.input.PubSubInputProperties;
+import org.talend.components.pubsub.output.PubSubOutputProperties;
 
 public class PubSubTestConstants {
 
@@ -36,22 +37,25 @@ public class PubSubTestConstants {
         return datastore;
     }
 
-    public static PubSubDatasetProperties createDataset(PubSubDatastoreProperties datastore) {
+    public static PubSubDatasetProperties createDataset(PubSubDatastoreProperties datastore, String topic) {
         PubSubDatasetProperties dataset = new PubSubDatasetProperties("dataset");
         dataset.init();
         dataset.setDatastoreProperties(datastore);
+        dataset.topic.setValue(topic);
         return dataset;
     }
 
-    public static PubSubDatasetProperties createDatasetFromCSV(PubSubDatastoreProperties datastore, String fieldDelimited) {
-        PubSubDatasetProperties dataset = createDataset(datastore);
+    public static PubSubDatasetProperties createDatasetFromCSV(PubSubDatastoreProperties datastore, String topic,
+            String fieldDelimited) {
+        PubSubDatasetProperties dataset = createDataset(datastore, topic);
         dataset.valueFormat.setValue(PubSubDatasetProperties.ValueFormat.CSV);
         dataset.fieldDelimiter.setValue(fieldDelimited);
         return dataset;
     }
 
-    public static PubSubDatasetProperties createDatasetFromAvro(PubSubDatastoreProperties datastore, String schema) {
-        PubSubDatasetProperties dataset = createDataset(datastore);
+    public static PubSubDatasetProperties createDatasetFromAvro(PubSubDatastoreProperties datastore, String topic,
+            String schema) {
+        PubSubDatasetProperties dataset = createDataset(datastore, topic);
         dataset.valueFormat.setValue(PubSubDatasetProperties.ValueFormat.AVRO);
         dataset.avroSchema.setValue(schema);
         return dataset;
@@ -72,6 +76,13 @@ public class PubSubTestConstants {
         }
         input.subscription.setValue(subscription);
         return input;
+    }
+
+    public static PubSubOutputProperties createOutput(PubSubDatasetProperties dataset) {
+        PubSubOutputProperties output = new PubSubOutputProperties("output");
+        output.init();
+        output.setDatasetProperties(dataset);
+        return output;
     }
 
 }

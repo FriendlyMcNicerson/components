@@ -64,7 +64,7 @@ public class PubSubInputRuntimeTest {
     @Before
     public void init() {
         datastoreProperties = createDatastore();
-        datasetProperties = createDataset(datastoreProperties);
+        datasetProperties = createDataset(datastoreProperties, topicName);
     }
 
     @Test
@@ -80,8 +80,8 @@ public class PubSubInputRuntimeTest {
         client.publish(topicName, messages);
 
         PubSubInputRuntime inputRuntime = new PubSubInputRuntime();
-        inputRuntime.initialize(null,
-                createInput(createDatasetFromCSV(createDatastore(), fieldDelimited), subscriptionName, null, maxRecords));
+        inputRuntime.initialize(null, createInput(createDatasetFromCSV(createDatastore(), topicName, fieldDelimited),
+                subscriptionName, null, maxRecords));
 
         PCollection<IndexedRecord> readMessages = pipeline.apply(inputRuntime);
 
@@ -106,7 +106,7 @@ public class PubSubInputRuntimeTest {
         client.publish(topicName, messages);
 
         PubSubInputRuntime inputRuntime = new PubSubInputRuntime();
-        inputRuntime.initialize(null, createInput(createDatasetFromAvro(createDatastore(), Person.schema.toString()),
+        inputRuntime.initialize(null, createInput(createDatasetFromAvro(createDatastore(), topicName, Person.schema.toString()),
                 subscriptionName, null, maxRecords));
 
         PCollection<IndexedRecord> readMessages = pipeline.apply(inputRuntime);

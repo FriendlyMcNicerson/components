@@ -46,7 +46,7 @@ public class PubSubDatasetRuntimeTest {
 
     @Test
     public void listTopics() {
-        runtime.initialize(null, createDataset(createDatastore()));
+        runtime.initialize(null, createDataset(createDatastore(), null));
         Set<String> retrieveTopics = runtime.listTopics();
         for (String topic : topics) {
             // GCP is a public resource, can't make sure the available topics only for tcomp test
