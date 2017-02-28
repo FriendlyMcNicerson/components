@@ -13,28 +13,30 @@
 
 package org.talend.components.pubsub.runtime;
 
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
 import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
-//import org.apache.beam.runners.direct.DirectRunner;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Sample;
-import com.google.cloud.Page;
-import com.google.cloud.pubsub.PubSub;
-import com.google.cloud.pubsub.Topic;
 import org.talend.components.adapter.beam.coders.LazyAvroCoder;
 import org.talend.components.adapter.beam.transform.DirectConsumerCollector;
 import org.talend.components.api.container.RuntimeContainer;
-import org.talend.components.common.dataset.runtime.DatasetRuntime;
 import org.talend.components.pubsub.PubSubDatasetProperties;
 import org.talend.components.pubsub.input.PubSubInputProperties;
 import org.talend.daikon.java8.Consumer;
 import org.talend.daikon.properties.ValidationResult;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import com.google.cloud.Page;
+import com.google.cloud.pubsub.PubSub;
+import com.google.cloud.pubsub.SubscriptionId;
+import com.google.cloud.pubsub.Topic;
+
+// import org.apache.beam.runners.direct.DirectRunner;
 
 public class PubSubDatasetRuntime implements IPubSubDatasetRuntime {
 
@@ -51,11 +53,11 @@ public class PubSubDatasetRuntime implements IPubSubDatasetRuntime {
 
     @Override
     public Schema getSchema() {
-        //TODO(bchen)
         // Simple schema container.
         final Schema[] s = new Schema[1];
         // Try to get one record and determine its schema in a callback.
         getSample(1, new Consumer<IndexedRecord>() {
+
             @Override
             public void accept(IndexedRecord in) {
                 s[0] = in.getSchema();
@@ -67,7 +69,7 @@ public class PubSubDatasetRuntime implements IPubSubDatasetRuntime {
 
     @Override
     public void getSample(int limit, Consumer<IndexedRecord> consumer) {
-        //TODO(bchen) because PubSub do not have offset, and the message will be deleted after
+        // TODO(bchen) because PubSub do not have offset, and the message will be deleted after
         // read, so have to create a dumy reader which do not call ack to the server, or let the
         // user have a duplicate subscription?
 
@@ -80,7 +82,7 @@ public class PubSubDatasetRuntime implements IPubSubDatasetRuntime {
 
         // Create a pipeline using the input component to get records.
         PipelineOptions options = PipelineOptionsFactory.create();
-//        options.setRunner(DirectRunner.class);
+        // options.setRunner(DirectRunner.class);
         final Pipeline p = Pipeline.create(options);
         LazyAvroCoder.registerAsFallback(p);
 
@@ -102,5 +104,18 @@ public class PubSubDatasetRuntime implements IPubSubDatasetRuntime {
             topicsName.add(topicIterator.next().getName());
         }
         return topicsName;
+    }
+
+    @Override
+    public Set<String> listSubscriptions() {
+        PubSub pubsub = PubSubConnection.createClient(properties.getDatastoreProperties());
+        Page<SubscriptionId> subscriptionIdPage = pubsub.listSubscriptions(properties.topic.getValue(),
+                PubSub.ListOption.pageSize(100));
+        Iterator<SubscriptionId> subscriptionIterator = subscriptionIdPage.iterateAll();
+        Set<String> subscriptionNames = new HashSet<>();
+        while (subscriptionIterator.hasNext()) {
+            subscriptionNames.add(subscriptionIterator.next().getSubscription());
+        }
+        return subscriptionNames;
     }
 }

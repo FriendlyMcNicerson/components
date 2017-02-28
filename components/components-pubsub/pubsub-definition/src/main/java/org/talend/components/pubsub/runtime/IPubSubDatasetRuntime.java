@@ -21,4 +21,6 @@ import org.talend.components.pubsub.PubSubDatasetProperties;
 public interface IPubSubDatasetRuntime extends DatasetRuntime<PubSubDatasetProperties> {
 
     public Set<String> listTopics();
+
+    public Set<String> listSubscriptions();
 }

@@ -13,21 +13,31 @@
 
 package org.talend.components.pubsub.input;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.talend.components.api.component.Connector;
 import org.talend.components.api.component.PropertyPathConnector;
+import org.talend.components.api.exception.ComponentException;
 import org.talend.components.common.FixedConnectorsComponentProperties;
 import org.talend.components.common.dataset.DatasetProperties;
 import org.talend.components.common.io.IOProperties;
 import org.talend.components.pubsub.PubSubDatasetDefinition;
 import org.talend.components.pubsub.PubSubDatasetProperties;
+import org.talend.components.pubsub.runtime.IPubSubDatasetRuntime;
+import org.talend.daikon.NamedThing;
+import org.talend.daikon.SimpleNamedThing;
 import org.talend.daikon.properties.ReferenceProperties;
+import org.talend.daikon.properties.ValidationResult;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.property.Property;
 import org.talend.daikon.properties.property.PropertyFactory;
+import org.talend.daikon.runtime.RuntimeInfo;
+import org.talend.daikon.runtime.RuntimeUtil;
+import org.talend.daikon.sandbox.SandboxedInstance;
 
 public class PubSubInputProperties extends FixedConnectorsComponentProperties implements IOProperties {
 
@@ -90,8 +100,21 @@ public class PubSubInputProperties extends FixedConnectorsComponentProperties im
         }
     }
 
-    public void beforeSubscription() {
-        // TODO(bchen)
+    public ValidationResult beforeSubscription() {
+        PubSubDatasetDefinition definition = new PubSubDatasetDefinition();
+        RuntimeInfo runtimeInfo = definition.getRuntimeInfo(getDatasetProperties());
+        try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClass(runtimeInfo, getClass().getClassLoader())) {
+            IPubSubDatasetRuntime runtime = (IPubSubDatasetRuntime) sandboxedInstance.getInstance();
+            runtime.initialize(null, getDatasetProperties());
+            List<NamedThing> topics = new ArrayList<>();
+            for (String topicName : runtime.listSubscriptions()) {
+                topics.add(new SimpleNamedThing(topicName, topicName));
+            }
+            subscription.setPossibleValues(topics);
+            return ValidationResult.OK;
+        } catch (Exception e) {
+            return new ValidationResult(new ComponentException(e));
+        }
     }
 
     @Override
