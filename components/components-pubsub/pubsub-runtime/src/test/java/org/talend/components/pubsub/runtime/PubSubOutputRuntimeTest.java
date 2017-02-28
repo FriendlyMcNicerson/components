@@ -3,10 +3,12 @@ package org.talend.components.pubsub.runtime;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.talend.components.pubsub.runtime.PubSubTestConstants.createDataset;
+import static org.talend.components.pubsub.runtime.PubSubTestConstants.createDatasetFromAvro;
 import static org.talend.components.pubsub.runtime.PubSubTestConstants.createDatasetFromCSV;
 import static org.talend.components.pubsub.runtime.PubSubTestConstants.createDatastore;
 import static org.talend.components.pubsub.runtime.PubSubTestConstants.createOutput;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -112,4 +114,40 @@ public class PubSubOutputRuntimeTest implements Serializable {
         assertThat(actual, containsInAnyOrder(expectedMessages.toArray()));
     }
 
+    @Test
+    public void outputAvro() throws IOException {
+        String testID = "avroBasicTest" + new Random().nextInt();
+
+        List<Person> expectedPersons = Person.genRandomList(testID, maxRecords);
+        List<String> expectedMessages = new ArrayList<>();
+        List<IndexedRecord> sendMessages = new ArrayList<>();
+        for (Person person : expectedPersons) {
+            expectedMessages.add(person.toAvroRecord().toString());
+            sendMessages.add(person.toAvroRecord());
+        }
+
+        PubSubOutputRuntime outputRuntime = new PubSubOutputRuntime();
+        outputRuntime.initialize(null,
+                createOutput(createDatasetFromAvro(createDatastore(), topicName, Person.schema.toString())));
+
+        PCollection<IndexedRecord> output = (PCollection<IndexedRecord>) pipeline
+                .apply(Create.of(sendMessages).withCoder(LazyAvroCoder.of()));
+        output.apply(outputRuntime);
+
+        pipeline.run().waitUntilFinish();
+
+        List<String> actual = new ArrayList<>();
+        while (true) {
+            Iterator<ReceivedMessage> messageIterator = client.pull(subscriptionName, maxRecords);
+            while (messageIterator.hasNext()) {
+                ReceivedMessage next = messageIterator.next();
+                actual.add(Person.desFromAvroBytes(next.getPayload().toByteArray()).toAvroRecord().toString());
+                next.ack();
+            }
+            if (actual.size() >= maxRecords) {
+                break;
+            }
+        }
+        assertThat(actual, containsInAnyOrder(expectedMessages.toArray()));
+    }
 }
