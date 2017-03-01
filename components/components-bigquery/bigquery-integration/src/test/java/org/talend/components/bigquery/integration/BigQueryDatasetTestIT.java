@@ -63,6 +63,7 @@ public class BigQueryDatasetTestIT {
 
     @Test
     public void testBasic() throws Exception {
+        //TODO the fixed dataset/table name should be change later
         BigQueryDatasetProperties props = createDatasetProperties();
         props.bqDataset.setValue("bqcomponentio");
         props.sourceType.setValue(SourceType.TABLE_NAME);
@@ -89,8 +90,6 @@ public class BigQueryDatasetTestIT {
             });
         }
 
-        assertThat(consumed, hasSize(1));
-        assertThat(consumed.get(0).get(0), is((Object) "1"));
-        assertThat(consumed.get(0).get(1), is((Object) "one"));
+        assertThat(consumed, hasSize(5));
     }
 }
