@@ -72,6 +72,7 @@ public class BigQueryAvroRegistry extends AvroRegistry {
         TableFieldSchema tableFieldSchema = new TableFieldSchema().setName(fieldName);
         boolean nullable = AvroUtils.isNullable(field.schema());
         if (nullable) {
+            // TODO: the default mode is NULLABLE, it should be set to REQUIRED if not nullable.
             tableFieldSchema = tableFieldSchema.setMode(NULLABLE_MODE);
         }
         org.apache.avro.Schema fieldSchema = AvroUtils.unwrapIfNullable(field.schema());
