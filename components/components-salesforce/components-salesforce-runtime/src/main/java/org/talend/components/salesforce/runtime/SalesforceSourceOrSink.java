@@ -38,6 +38,9 @@ import org.talend.components.salesforce.SalesforceDefinition;
 import org.talend.components.salesforce.SalesforceProvideConnectionProperties;
 import org.talend.components.salesforce.common.SalesforceRuntimeSourceOrSink;
 import org.talend.components.salesforce.connection.oauth.SalesforceOAuthConnection;
+import org.talend.components.salesforce.runtime.common.ConnectionHolder;
+import org.talend.components.salesforce.runtime.common.SalesforceRuntimeCommon;
+import org.talend.components.salesforce.runtime.common.SalesforceConstant;
 import org.talend.components.salesforce.schema.SalesforceSchemaHelper;
 import org.talend.components.salesforce.soql.FieldDescription;
 import org.talend.components.salesforce.soql.SoqlQuery;
@@ -64,21 +67,13 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
 
     private transient static final Logger LOG = LoggerFactory.getLogger(SalesforceSourceOrSink.class);
 
+    protected SalesforceProvideConnectionProperties properties;
+
     private transient static final Schema DEFAULT_GUESS_SCHEMA_TYPE = AvroUtils._string();
 
     protected static final String API_VERSION = "34.0";
 
-    protected SalesforceProvideConnectionProperties properties;
-
     protected static final String KEY_CONNECTION = "Connection";
-
-    protected static final String SESSION_ID = "SESSION_ID";
-
-    protected static final String SERVICE_ENDPOINT = "SERVICE_ENDPOINT";
-
-    protected static final String MAX_VALID_SECONDS = "MAX_VALID_SECONDS";
-
-    protected static final String SESSION_FILE_PREFX = "sessionIDFile_";
 
     private String sessionFilePath;
 
@@ -88,9 +83,7 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
 
     @Override
     public ValidationResult initialize(RuntimeContainer container, ComponentProperties properties) {
-        if(properties instanceof SalesforceProvideConnectionProperties) {
-            this.properties = (SalesforceProvideConnectionProperties) properties;
-        }
+        this.properties = (SalesforceProvideConnectionProperties) properties;
         return ValidationResult.OK;
     }
 
@@ -100,23 +93,14 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
         try {
             connect(container);
         } catch (IOException ex) {
-            return exceptionToValidationResult(ex);
+            return SalesforceRuntimeCommon.exceptionToValidationResult(ex);
         }
-        return vr;
-    }
-
-    protected static ValidationResult exceptionToValidationResult(Exception ex) {
-        ValidationResult vr = new ValidationResult();
-        // FIXME - do a better job here
-        vr.setMessage(ex.getMessage());
-        vr.setStatus(ValidationResult.Result.ERROR);
         return vr;
     }
 
     public static ValidationResult validateConnection(SalesforceProvideConnectionProperties properties) {
         ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
-        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(
-                SalesforceSourceOrSink.class.getCanonicalName());
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(SalesforceSourceOrSink.class.getCanonicalName());
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {
             SalesforceSourceOrSink ss = (SalesforceSourceOrSink) sandboxedInstance.getInstance();
@@ -202,15 +186,8 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
         return connection;
     }
 
-    class ConnectionHolder {
-
-        PartnerConnection connection;
-
-        BulkConnection bulkConnection;
-    }
-
     protected ConnectionHolder connect(RuntimeContainer container) throws IOException {
-        enableTLSv11AndTLSv12ForJava7();
+        SalesforceRuntimeCommon.enableTLSv11AndTLSv12ForJava7();
 
         final ConnectionHolder ch = new ConnectionHolder();
         SalesforceConnectionProperties connProps = properties.getConnectionProperties();
@@ -284,8 +261,8 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
             if (isReuseSession()) {
                 Properties properties = getSessionProperties();
                 if (properties != null) {
-                    this.sessionId = properties.getProperty(SESSION_ID);
-                    this.serviceEndPoint = properties.getProperty(SERVICE_ENDPOINT);
+                    this.sessionId = properties.getProperty(SalesforceConstant.SESSION_ID);
+                    this.serviceEndPoint = properties.getProperty(SalesforceConstant.SERVICE_ENDPOINT);
                 }
             }
             if (this.sessionId != null && this.serviceEndPoint != null) {
@@ -316,18 +293,10 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
         }
     }
 
-    private void enableTLSv11AndTLSv12ForJava7() {
-        String version = System.getProperty("java.version");
-        if (version != null && version.startsWith("1.7")) {
-            System.setProperty("https.protocols", "TLSv1.1,TLSv1.2");
-        }
-    }
-
     public static List<NamedThing> getSchemaNames(RuntimeContainer container, SalesforceProvideConnectionProperties properties)
             throws IOException {
         ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
-        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(
-                SalesforceSourceOrSink.class.getCanonicalName());
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(SalesforceSourceOrSink.class.getCanonicalName());
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {
             SalesforceSourceOrSink ss = (SalesforceSourceOrSink) sandboxedInstance.getInstance();
@@ -336,7 +305,7 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
                 ss.connect(container);
                 return ss.getSchemaNames(container);
             } catch (Exception ex) {
-                throw new ComponentException(exceptionToValidationResult(ex));
+                throw new ComponentException(SalesforceRuntimeCommon.exceptionToValidationResult(ex));
             }
         }
     }
@@ -365,8 +334,7 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
     public static Schema getSchema(RuntimeContainer container, SalesforceProvideConnectionProperties properties, String module)
             throws IOException {
         ClassLoader classLoader = SalesforceDefinition.class.getClassLoader();
-        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(
-                SalesforceSourceOrSink.class.getCanonicalName());
+        RuntimeInfo runtimeInfo = SalesforceDefinition.getCommonRuntimeInfo(SalesforceSourceOrSink.class.getCanonicalName());
         try (SandboxedInstance sandboxedInstance = RuntimeUtil.createRuntimeClassWithCurrentJVMProperties(runtimeInfo,
                 classLoader)) {
             SalesforceSourceOrSink ss = (SalesforceSourceOrSink) sandboxedInstance.getInstance();
@@ -375,7 +343,7 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
             try {
                 connection = ss.connect(container).connection;
             } catch (IOException ex) {
-                throw new ComponentException(exceptionToValidationResult(ex));
+                throw new ComponentException(SalesforceRuntimeCommon.exceptionToValidationResult(ex));
             }
             return ss.getSchema(connection, module);
         }
@@ -428,15 +396,6 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
     }
 
     /**
-     * This is for Buck connection session renew It can't called automatically with current force-wsc api
-     */
-    protected void renewSession(ConnectorConfig config) throws ConnectionException {
-        LOG.debug("renew session bulk connection");
-        SessionRenewer renewer = config.getSessionRenewer();
-        renewer.renewSession(config);
-    }
-
-    /**
      * Get the session properties instance
      * 
      * @return session properties
@@ -450,7 +409,7 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
                 try {
                     Properties sessionProp = new Properties();
                     sessionProp.load(sessionInput);
-                    int maxValidSeconds = Integer.valueOf(sessionProp.getProperty(MAX_VALID_SECONDS));
+                    int maxValidSeconds = Integer.valueOf(sessionProp.getProperty(SalesforceConstant.MAX_VALID_SECONDS));
                     // Check whether the session is timeout
                     if (maxValidSeconds > ((System.currentTimeMillis() - sessionFile.lastModified()) / 1000)) {
                         return sessionProp;
@@ -486,9 +445,9 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
             FileOutputStream sessionOutput = null;
             sessionOutput = new FileOutputStream(sessionFile);
             Properties sessionProp = new Properties();
-            sessionProp.setProperty(SESSION_ID, sessionId);
-            sessionProp.setProperty(SERVICE_ENDPOINT, serviceEndPoint);
-            sessionProp.setProperty(MAX_VALID_SECONDS, String.valueOf(result.getSessionSecondsValid()));
+            sessionProp.setProperty(SalesforceConstant.SESSION_ID, sessionId);
+            sessionProp.setProperty(SalesforceConstant.SERVICE_ENDPOINT, serviceEndPoint);
+            sessionProp.setProperty(SalesforceConstant.MAX_VALID_SECONDS, String.valueOf(result.getSessionSecondsValid()));
             try {
                 sessionProp.store(sessionOutput, null);
             } finally {
@@ -504,7 +463,7 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
      */
     protected boolean isReuseSession() {
         SalesforceConnectionProperties connectionProperties = getConnectionProperties();
-        sessionFilePath = connectionProperties.sessionDirectory.getValue() + "/" + SESSION_FILE_PREFX
+        sessionFilePath = connectionProperties.sessionDirectory.getValue() + "/" + SalesforceConstant.SESSION_FILE_PREFX
                 + connectionProperties.userPassword.userId.getValue();
         return (SalesforceConnectionProperties.LoginType.Basic == connectionProperties.loginType.getValue())
                 && connectionProperties.reuseSession.getValue() && !StringUtils.isEmpty(sessionFilePath);
@@ -521,7 +480,7 @@ public class SalesforceSourceOrSink implements SalesforceRuntimeSourceOrSink, Sa
         SchemaBuilder.FieldAssembler fieldAssembler = SchemaBuilder.record("GuessedSchema").fields();
 
         DescribeSObjectResult describeSObjectResult = null;
-        
+
         try {
             describeSObjectResult = connect(null).connection.describeSObject(drivingEntityName);
         } catch (ConnectionException e) {

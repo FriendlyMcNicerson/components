@@ -23,7 +23,6 @@ import org.talend.components.api.component.runtime.Result;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
 import org.talend.components.api.exception.DataRejectException;
-import org.talend.components.salesforce.runtime.SalesforceBulkRuntime.BulkResult;
 import org.talend.components.salesforce.tsalesforcebulkexec.TSalesforceBulkExecProperties;
 
 import com.sforce.async.AsyncApiException;
@@ -52,7 +51,7 @@ final class SalesforceBulkExecReader extends SalesforceReader {
     public boolean start() throws IOException {
 
         TSalesforceBulkExecProperties sprops = (TSalesforceBulkExecProperties) properties;
-        bulkRuntime = new SalesforceBulkRuntime((SalesforceSource) getCurrentSource(), container);
+        bulkRuntime = new SalesforceBulkRuntime(((SalesforceSource) getCurrentSource()).connect(container).bulkConnection);
         bulkRuntime.setConcurrencyMode(sprops.bulkProperties.concurrencyMode.getValue());
         bulkRuntime.setAwaitTime(sprops.bulkProperties.waitTimeCheckBatchState.getValue());
 

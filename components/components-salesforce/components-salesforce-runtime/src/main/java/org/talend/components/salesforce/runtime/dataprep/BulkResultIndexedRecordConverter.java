@@ -10,16 +10,17 @@
 // 9 rue Pages 92150 Suresnes, France
 //
 // ============================================================================
-package org.talend.components.salesforce.runtime;
+package org.talend.components.salesforce.runtime.dataprep;
 
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.IndexedRecord;
+import org.talend.components.salesforce.runtime.BulkResult;
 import org.talend.daikon.avro.converter.AvroConverter;
 import org.talend.daikon.avro.converter.IndexedRecordConverter;
 
 
-public class BulkResultAdapterFactory implements IndexedRecordConverter<BulkResult, IndexedRecord> {
+public class BulkResultIndexedRecordConverter implements IndexedRecordConverter<BulkResult, IndexedRecord> {
 
     private Schema schema;
 
@@ -77,7 +78,7 @@ public class BulkResultAdapterFactory implements IndexedRecordConverter<BulkResu
                 for (int j = 0; j < names.length; j++) {
                     Field f = getSchema().getFields().get(j);
                     names[j] = f.name();
-                    fieldConverter[j] = SalesforceAvroRegistry.get().getConverterFromString(f);
+                    fieldConverter[j] = SalesforceAvroRegistryString.get().getConverterFromString(f);
                 }
             }
             return fieldConverter[i].convertToAvro(value.getValue(names[i]));
@@ -85,7 +86,7 @@ public class BulkResultAdapterFactory implements IndexedRecordConverter<BulkResu
 
         @Override
         public Schema getSchema() {
-            return BulkResultAdapterFactory.this.getSchema();
+            return BulkResultIndexedRecordConverter.this.getSchema();
         }
     }
 }

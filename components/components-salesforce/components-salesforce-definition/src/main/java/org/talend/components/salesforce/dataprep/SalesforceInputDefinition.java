@@ -49,7 +49,7 @@ public class SalesforceInputDefinition extends AbstractComponentDefinition {
     public RuntimeInfo getRuntimeInfo(ExecutionEngine engine, ComponentProperties properties,
             ConnectorTopology connectorTopology) {
         assertEngineCompatibility(engine);
-        return SalesforceDefinition.getCommonRuntimeInfo("org.talend.components.salesforce.runtime.SalesforceSource");
+        return SalesforceDefinition.getCommonRuntimeInfo("org.talend.components.salesforce.runtime.dataprep.SalesforceDataprepSource");
     }
 
     @SuppressWarnings("rawtypes")

@@ -21,8 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.exception.ComponentException;
-import org.talend.components.salesforce.runtime.SalesforceBulkRuntime.BulkResult;
-import org.talend.components.salesforce.runtime.SalesforceBulkRuntime.BulkResultSet;
 import org.talend.components.salesforce.tsalesforceinput.TSalesforceInputProperties;
 
 import com.sforce.async.AsyncApiException;
@@ -48,7 +46,7 @@ public class SalesforceBulkQueryInputReader extends SalesforceReader<IndexedReco
     public boolean start() throws IOException {
         try {
             if (bulkRuntime == null) {
-                bulkRuntime = new SalesforceBulkRuntime((SalesforceSource) getCurrentSource(), container);
+                bulkRuntime = new SalesforceBulkRuntime(((SalesforceSource) getCurrentSource()).connect(container).bulkConnection);
             }
             executeSalesforceBulkQuery();
             bulkResultSet = bulkRuntime.getQueryResultSet(bulkRuntime.nextResultId());
@@ -97,7 +95,7 @@ public class SalesforceBulkQueryInputReader extends SalesforceReader<IndexedReco
 
     protected void executeSalesforceBulkQuery() throws IOException, ConnectionException {
         String queryText = getQueryString(properties);
-        bulkRuntime = new SalesforceBulkRuntime((SalesforceSource) getCurrentSource(), container);
+        bulkRuntime = new SalesforceBulkRuntime(((SalesforceSource) getCurrentSource()).connect(container).bulkConnection);
         try {
             bulkRuntime.doBulkQuery(getModuleName(), queryText, 30);
         } catch (AsyncApiException | InterruptedException | ConnectionException e) {

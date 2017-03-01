@@ -16,9 +16,9 @@ import java.util.Arrays;
 
 import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.common.datastore.runtime.DatastoreRuntime;
-import org.talend.components.salesforce.SalesforceConnectionProperties;
+import org.talend.components.salesforce.dataprep.SalesforceInputProperties;
+import org.talend.components.salesforce.dataset.SalesforceDatasetProperties;
 import org.talend.components.salesforce.datastore.SalesforceDatastoreProperties;
-import org.talend.components.salesforce.runtime.SalesforceSourceOrSink;
 import org.talend.daikon.properties.ValidationResult;
 
 /**
@@ -31,21 +31,15 @@ public class SalesforceDatastoreRuntime implements DatastoreRuntime<SalesforceDa
 
     @Override
     public Iterable<ValidationResult> doHealthChecks(RuntimeContainer container) {
-        SalesforceSourceOrSink jss = new SalesforceSourceOrSink();
+        SalesforceDataprepSource sds = new SalesforceDataprepSource();
 
-        // create a SalesforceConnectionProperties as value passer model only, no other usage
-        SalesforceConnectionProperties componentProperties = new SalesforceConnectionProperties("model");
-        componentProperties.bulkConnection.setValue(true);
-        componentProperties.userPassword.userId.setValue(datastore.userId.getValue());
-        componentProperties.userPassword.password.setValue(datastore.password.getValue());
-        componentProperties.userPassword.securityKey.setValue(datastore.securityKey.getValue());
-        
-        //TODO pass them from the global property file
-        componentProperties.endpoint.setValue(SalesforceConnectionProperties.URL);
-        componentProperties.timeout.setValue(60000);
+        SalesforceInputProperties properties = new SalesforceInputProperties("model");
+        SalesforceDatasetProperties dataset = new SalesforceDatasetProperties("dataset");
+        properties.setDatasetProperties(dataset);
+        dataset.setDatastoreProperties(datastore);
 
-        jss.initialize(container, componentProperties);
-        ValidationResult result = jss.validate(container);
+        sds.initialize(container, properties);
+        ValidationResult result = sds.validate(container);
         return Arrays.asList(result);
     }
 

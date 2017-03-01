@@ -18,7 +18,6 @@ import java.io.IOException;
 
 import org.apache.avro.generic.IndexedRecord;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.talend.components.api.component.runtime.Reader;
 import org.talend.components.salesforce.dataprep.SalesforceInputDefinition;
@@ -26,25 +25,22 @@ import org.talend.components.salesforce.dataprep.SalesforceInputProperties;
 import org.talend.components.salesforce.dataset.SalesforceDatasetProperties;
 import org.talend.components.salesforce.datastore.SalesforceDatastoreDefinition;
 import org.talend.components.salesforce.datastore.SalesforceDatastoreProperties;
-import org.talend.components.salesforce.runtime.SalesforceSource;
 
 public class SalesforceInputTestIT {
 
-    @Ignore
     @Test
     public void testReaderForModule() {
         Reader reader = null;
         try {
             SalesforceInputProperties properties = createCommonSalesforceInputPropertiesForModule();
 
-            SalesforceSource source = new SalesforceSource();
+            SalesforceDataprepSource source = new SalesforceDataprepSource();
             source.initialize(null, properties);
             reader = source.createReader(null);
 
             reader.start();
             IndexedRecord row = (IndexedRecord) reader.getCurrent();
             String id = (String) row.get(0);
-            String name = (String) row.get(1);
             Assert.assertNotNull("id is null", id);
 
             reader.advance();
@@ -53,8 +49,8 @@ public class SalesforceInputTestIT {
 
             reader.close();
 
-//            Map<String, Object> returnMap = reader.getReturnValues();
-//            Assert.assertEquals(3, returnMap.get(ComponentDefinition.RETURN_TOTAL_RECORD_COUNT));
+            // Map<String, Object> returnMap = reader.getReturnValues();
+            // Assert.assertEquals(3, returnMap.get(ComponentDefinition.RETURN_TOTAL_RECORD_COUNT));
         } catch (Exception e) {
             Assert.fail(e.getMessage());
         } finally {
@@ -69,24 +65,23 @@ public class SalesforceInputTestIT {
 
     }
 
-    @Ignore
     @Test
     public void testTypeForModule() throws Exception {
         SalesforceInputProperties properties = createCommonSalesforceInputPropertiesForModule();
 
-        SalesforceSource source = new SalesforceSource();
+        SalesforceDataprepSource source = new SalesforceDataprepSource();
         source.initialize(null, properties);
         Reader reader = source.createReader(null);
 
         try {
             int count = 3;
             for (boolean available = reader.start(); available; available = reader.advance()) {
-                IndexedRecord record = (IndexedRecord)reader.getCurrent();
+                IndexedRecord record = (IndexedRecord) reader.getCurrent();
 
                 assertEquals(String.class, record.get(0).getClass());
                 assertEquals(String.class, record.get(1).getClass());
-                
-                if((count--) < 1) {
+
+                if ((count--) < 1) {
                     break;
                 }
             }
@@ -96,14 +91,14 @@ public class SalesforceInputTestIT {
             reader.close();
         }
     }
-    
+
     @Test
     public void testReaderForQuery() {
         Reader reader = null;
         try {
             SalesforceInputProperties properties = createCommonSalesforceInputPropertiesForQuery();
 
-            SalesforceSource source = new SalesforceSource();
+            SalesforceDataprepSource source = new SalesforceDataprepSource();
             source.initialize(null, properties);
             reader = source.createReader(null);
 
@@ -119,8 +114,8 @@ public class SalesforceInputTestIT {
 
             reader.close();
 
-//            Map<String, Object> returnMap = reader.getReturnValues();
-//            Assert.assertEquals(3, returnMap.get(ComponentDefinition.RETURN_TOTAL_RECORD_COUNT));
+            // Map<String, Object> returnMap = reader.getReturnValues();
+            // Assert.assertEquals(3, returnMap.get(ComponentDefinition.RETURN_TOTAL_RECORD_COUNT));
         } catch (Exception e) {
             Assert.fail(e.getMessage());
         } finally {
@@ -139,19 +134,19 @@ public class SalesforceInputTestIT {
     public void testTypeForQuery() throws Exception {
         SalesforceInputProperties properties = createCommonSalesforceInputPropertiesForQuery();
 
-        SalesforceSource source = new SalesforceSource();
+        SalesforceDataprepSource source = new SalesforceDataprepSource();
         source.initialize(null, properties);
         Reader reader = source.createReader(null);
 
         try {
             int count = 3;
             for (boolean available = reader.start(); available; available = reader.advance()) {
-                IndexedRecord record = (IndexedRecord)reader.getCurrent();
+                IndexedRecord record = (IndexedRecord) reader.getCurrent();
 
                 assertEquals(String.class, record.get(0).getClass());
                 assertEquals(String.class, record.get(1).getClass());
-                
-                if((count--) < 1) {
+
+                if ((count--) < 1) {
                     break;
                 }
             }

@@ -38,6 +38,7 @@ import org.talend.components.api.container.RuntimeContainer;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.api.test.ComponentTestUtils;
 import org.talend.components.salesforce.SalesforceConnectionProperties;
+import org.talend.components.salesforce.runtime.common.ConnectionHolder;
 import org.talend.components.salesforce.test.SalesforceTestBase;
 import org.talend.components.salesforce.tsalesforceconnection.TSalesforceConnectionDefinition;
 import org.talend.components.salesforce.tsalesforceinput.TSalesforceInputDefinition;
@@ -371,7 +372,7 @@ public class SalesforceSessionReuseTestIT extends SalesforceTestBase {
     protected void invalidSession(SalesforceConnectionProperties props, String sessionId) throws Throwable {
         SalesforceSourceOrSink sourceOrSink = new SalesforceSourceOrSink();
         sourceOrSink.initialize(null, props);
-        SalesforceSourceOrSink.ConnectionHolder connectionHolder = sourceOrSink.connect(null);
+        ConnectionHolder connectionHolder = sourceOrSink.connect(null);
         assertNotNull(connectionHolder.connection);
         if (sessionId != null) {
             connectionHolder.connection.invalidateSessions(new String[] { sessionId });

@@ -3,7 +3,6 @@ package org.talend.components.salesforce.runtime.dataprep;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.talend.components.salesforce.dataset.SalesforceDatasetProperties;
 import org.talend.components.salesforce.datastore.SalesforceDatastoreDefinition;
@@ -36,8 +35,6 @@ public class SalesforceDatasetRuntimeTestIT {
         Assert.assertTrue("empty schema", schema.getFields().size() > 0);
     }
 
-    //Meet a limit by salesforce api and service : Failed to process query: FUNCTIONALITY_NOT_ENABLED: Selecting compound data not supported in Bulk Query'
-    @Ignore
     @Test
     public void testGetSampleForModule() {
         SalesforceDatasetProperties dataset = createDatasetPropertiesForModule();

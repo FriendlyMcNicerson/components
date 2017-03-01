@@ -20,17 +20,11 @@ import org.slf4j.LoggerFactory;
 import org.talend.components.api.component.runtime.BoundedReader;
 import org.talend.components.api.component.runtime.BoundedSource;
 import org.talend.components.api.container.RuntimeContainer;
-import org.talend.components.api.properties.ComponentProperties;
-import org.talend.components.salesforce.SalesforceConnectionProperties;
-import org.talend.components.salesforce.dataprep.SalesforceInputProperties;
-import org.talend.components.salesforce.dataset.SalesforceDatasetProperties;
-import org.talend.components.salesforce.datastore.SalesforceDatastoreProperties;
 import org.talend.components.salesforce.tsalesforcebulkexec.TSalesforceBulkExecProperties;
 import org.talend.components.salesforce.tsalesforcegetdeleted.TSalesforceGetDeletedProperties;
 import org.talend.components.salesforce.tsalesforcegetservertimestamp.TSalesforceGetServerTimestampProperties;
 import org.talend.components.salesforce.tsalesforcegetupdated.TSalesforceGetUpdatedProperties;
 import org.talend.components.salesforce.tsalesforceinput.TSalesforceInputProperties;
-import org.talend.daikon.properties.ValidationResult;
 
 public class SalesforceSource extends SalesforceSourceOrSink implements BoundedSource {
 
@@ -39,45 +33,6 @@ public class SalesforceSource extends SalesforceSourceOrSink implements BoundedS
     public SalesforceSource() {
     }
     
-    @Override
-    public ValidationResult initialize(RuntimeContainer container, ComponentProperties properties) {
-        super.initialize(container, properties);
-        
-        if(properties instanceof SalesforceInputProperties) {//convert the properties
-            SalesforceInputProperties sourceProperties = (SalesforceInputProperties)properties;
-            
-            TSalesforceInputProperties targetProperties = new TSalesforceInputProperties("model");
-            targetProperties.setupProperties();
-            
-            SalesforceDatasetProperties dataset = sourceProperties.getDatasetProperties();
-            
-            SalesforceDatastoreProperties datastore = dataset.getDatastoreProperties();
-
-            targetProperties.connection.bulkConnection.setValue(true);
-            targetProperties.queryMode.setValue(TSalesforceInputProperties.QueryMode.Bulk);
-
-            targetProperties.connection.userPassword.userId.setValue(datastore.userId.getValue());
-            targetProperties.connection.userPassword.password.setValue(datastore.password.getValue());
-            targetProperties.connection.userPassword.securityKey.setValue(datastore.securityKey.getValue());
-
-            // TODO pass them from the global property file
-            targetProperties.connection.endpoint.setValue(SalesforceConnectionProperties.URL);
-            targetProperties.connection.timeout.setValue(60000);
-
-            if (dataset.moduleName.getValue() != null) {
-                targetProperties.manualQuery.setValue(false);
-                targetProperties.module.moduleName.setValue(dataset.moduleName.getValue());
-            } else {
-                targetProperties.manualQuery.setValue(true);
-                targetProperties.query.setValue(dataset.query.getValue());
-            }
-            
-            this.properties = targetProperties;
-        }
-        
-        return ValidationResult.OK;
-    }
-
     @Override
     public List<? extends BoundedSource> splitIntoBundles(long desiredBundleSizeBytes, RuntimeContainer adaptor)
             throws Exception {
